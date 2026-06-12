@@ -79,7 +79,8 @@
 
       function spawnNotif(type) {
         const TYPES = ['error', 'warning', 'info', 'success'];
-        if (type === 'random') type = pick(TYPES);
+        const autoDismiss = type === 'random';
+        if (autoDismiss) type = pick(TYPES);
 
         const data   = CONTENT[type];
         const heading = pick(data.headings);
@@ -106,6 +107,8 @@
         });
 
         document.getElementById('notif-stack').prepend(el);
+
+        if (autoDismiss) setTimeout(() => el.remove(), 5000);
       }
     </script>
 
