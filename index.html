@@ -92,8 +92,8 @@
 
       function spawnNotif(type) {
         const TYPES = ['error', 'warning', 'info', 'success'];
-        const autoDismiss = type === 'random';
-        if (autoDismiss) type = pick(TYPES);
+        if (type === 'random') type = pick(TYPES);
+        const autoDismiss = Math.random() < 0.5;
 
         const data   = CONTENT[type];
         const heading = pick(data.headings);
