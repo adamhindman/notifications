@@ -24,7 +24,8 @@
   gap: 24px;
   padding: 16px 18px;
   animation: notif-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  background: #1c1f26;
+  background: rgba(28, 31, 38, 0.85);
+  backdrop-filter: blur(12px);
   border-radius: 5px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.45);
   color: #fff;
