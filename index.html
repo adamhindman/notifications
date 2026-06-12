@@ -108,6 +108,10 @@
 
         document.getElementById('notif-stack').prepend(el);
 
+        const descEl = el.querySelector('.notif-desc');
+        const moreBtn = el.querySelector('.notif-more');
+        if (descEl.scrollHeight <= descEl.clientHeight) moreBtn.hidden = true;
+
         if (autoDismiss) setTimeout(() => el.remove(), 5000);
       }
     </script>
