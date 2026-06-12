@@ -586,3 +586,23 @@ body {
 
 .debug-btn:hover { opacity: 0.8; }
 
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .notif-stack {
+    left: 12px;
+    right: 12px;
+    min-width: unset;
+    max-width: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .notif {
+    flex-wrap: wrap;
+  }
+
+  .notif-actions {
+    width: 100%;
+    margin-left: calc(24px + 24px); /* icon width + gap — aligns below body text */
+  }
+}
