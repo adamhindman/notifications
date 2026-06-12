@@ -85,33 +85,16 @@
   color: #c8cdd6;
   margin: 0;
   overflow: hidden;
-  max-height: 1.45em;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   line-height: 1.45;
 }
 
-.notif-desc::before {
-  content: '';
-  float: right;
-  height: 100%;
-}
-
-.notif-desc::after {
-  content: '… more';
-  float: right;
-  clear: right;
-  color: #5b9cf6;
-  padding-left: 6px;
-  font-size: 13px;
-}
-
 .notif-desc.notif-desc-expanded {
-  max-height: none;
+  display: block;
+  -webkit-line-clamp: unset;
   overflow: visible;
-}
-
-.notif-desc.notif-desc-expanded::before,
-.notif-desc.notif-desc-expanded::after {
-  display: none;
 }
 
 .notif-actions {
