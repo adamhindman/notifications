@@ -60,7 +60,7 @@ The `CONTENT` object holds arrays of `headings` and `descs` per type. Each call 
 
 ### Description truncation + disclosure
 
-`.notif-desc` is clamped to 1 line via `-webkit-line-clamp: 1`. After the element is inserted into the DOM, `scrollHeight` is compared to `clientHeight`:
+`.notif-desc` is clamped to 1 line via `-webkit-line-clamp: 1`. After the element is inserted into the DOM, the check is deferred with `requestAnimationFrame` so the browser has completed layout before measuring. `scrollHeight` is then compared to `clientHeight`:
 
 - If `scrollHeight > clientHeight` → text is truncated; show `.notif-more`
 - If `scrollHeight <= clientHeight` → text fits; set `moreBtn.hidden = true`
