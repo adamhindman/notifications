@@ -111,7 +111,11 @@
         requestAnimationFrame(() => {
           const descEl = el.querySelector('.notif-desc');
           const moreBtn = el.querySelector('.notif-more');
-          if (descEl.scrollHeight <= descEl.clientHeight) moreBtn.hidden = true;
+          const clampedH = descEl.clientHeight;             // read clamped height
+          descEl.classList.add('notif-desc-expanded');      // remove clamp
+          const fullH = descEl.offsetHeight;                // read natural height (forces reflow)
+          descEl.classList.remove('notif-desc-expanded');   // restore clamp
+          if (fullH <= clampedH + 2) moreBtn.hidden = true; // +2 for sub-pixel rounding
         });
 
         if (autoDismiss) {
