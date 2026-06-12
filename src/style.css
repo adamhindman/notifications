@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 12px 18px;
+  padding: 16px 18px;
 
   animation: notif-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   background: #1c1f26;
