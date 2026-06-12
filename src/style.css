@@ -1,5 +1,109 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ── Notification ── */
+.notif {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #1c1f26;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  max-width: 720px;
+  min-width: 480px;
+  color: #fff;
+}
+
+.notif-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  padding-top: 2px;
+}
+
+.notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.notif-desc {
+  font-size: 13.5px;
+  color: #c8cdd6;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  line-height: 1.45;
+}
+
+.notif-desc.notif-desc-expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.notif-more {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5b9cf6;
+  font-size: 13px;
+  padding: 4px 0 0;
+  display: block;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.notif-more:hover { color: #7db3fa; }
+
+.notif-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.notif-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 0;
+}
+.notif-action-btn:hover { opacity: 0.8; }
+
+.notif-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: transparent;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.notif-close:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+
 :root {
   --sidebar-bg: #253858;
   --sidebar-icon: #8fa3bf;

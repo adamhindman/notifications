@@ -8,6 +8,35 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
+    <!-- ── Notification ── -->
+    <div class="notif notif-error" id="notif-demo">
+      <div class="notif-icon">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#e5534b"><path d="M12 2l2.4 3.2L18 4l.8 3.8L22 10l-2 3 2 3-3.2 1.2L18 21l-3.6-1.2L12 22l-2.4-3.2L6 20l-.8-3.8L2 14l2-3-2-3 3.2-1.2L6 3l3.6 1.2z"/><text x="12" y="16.5" text-anchor="middle" font-size="10" font-weight="900" fill="white" font-family="sans-serif">!</text></svg>
+      </div>
+      <div class="notif-body">
+        <div class="notif-heading">Error text</div>
+        <div class="notif-desc-wrap">
+          <p class="notif-desc" id="notif-desc">And this is its description, it wraps to multiple lines if necessary and everything about it is great and there is a lot to say here.</p>
+        </div>
+        <button class="notif-more" id="notif-more-btn" onclick="toggleMore()">More information</button>
+      </div>
+      <div class="notif-actions">
+        <button class="notif-action-btn">Button Label</button>
+        <button class="notif-close" onclick="document.getElementById('notif-demo').remove()" aria-label="Close">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function toggleMore() {
+        const desc = document.getElementById('notif-desc');
+        const btn = document.getElementById('notif-more-btn');
+        const expanded = desc.classList.toggle('notif-desc-expanded');
+        btn.textContent = expanded ? 'Less information' : 'More information';
+      }
+    </script>
+
     <div class="shell">
 
       <!-- ── Left sidebar ── -->
