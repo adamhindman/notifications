@@ -77,6 +77,11 @@
 
       const COLORS = { error: '#F04248', warning: '#FFD21E', success: '#00DF80', info: '#017FA5' };
 
+      const ACTION_LABELS = [
+        'Learn more', 'View details', 'Retry', 'Dismiss', 'Open', 'Review',
+        'Take action', 'See changes', 'Fix now', 'Upgrade', 'Contact support', 'Go to file',
+      ];
+
       function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
       function dismissNotif(el) {
@@ -104,7 +109,7 @@
             <p class="notif-desc">${desc}</p>
           </div>
           <div class="notif-actions">
-            <button class="notif-action-btn">Button Label</button>
+            <button class="notif-action-btn">${pick(ACTION_LABELS)}</button>
             <button class="notif-close" aria-label="Close">${CLOSE_SVG}</button>
           </div>`;
 
