@@ -17,13 +17,12 @@ Each notification is a `.notif` div with three children:
 ```
 .notif
   .notif-icon       — 24×24 SVG icon, aligned to the top of the card
-  .notif-body       — heading + description + "More information" toggle
+  .notif-body       — heading + description
     .notif-heading  — bold title text
     .notif-desc     — description, clamped to 1 line by default
-    button.notif-more — "More information" / "Less information" toggle
   .notif-actions    — right-aligned action button + close button
     button.notif-action-btn — optional CTA (text label, no border)
-    button.notif-close      — circular ×  button
+    button.notif-close      — circular × button
 ```
 
 Notifications are prepended into `#notif-stack` (fixed top-right, flex column, gap 10px) so the newest always appears at the top.
@@ -56,16 +55,20 @@ The `CONTENT` object holds arrays of `headings` and `descs` per type. Each call 
 
 ---
 
-## Behaviours to implement
+## Behaviours
 
 ### Description truncation + disclosure
 
-`.notif-desc` is clamped to 1 line via `-webkit-line-clamp: 1`. After the element is inserted into the DOM, the check is deferred with `requestAnimationFrame` so the browser has completed layout before measuring. `scrollHeight` is then compared to `clientHeight`:
+`.notif-desc` is clamped to 1 line via `-webkit-line-clamp: 1`. After the element is inserted into the DOM, truncation detection is deferred with `requestAnimationFrame` so layout is complete before measuring.
 
-- If `scrollHeight > clientHeight` → text is truncated; show `.notif-more`
-- If `scrollHeight <= clientHeight` → text fits; set `moreBtn.hidden = true`
+**Detection method:** temporarily override the element's inline styles to remove the clamp (`display:block; -webkit-line-clamp:unset; overflow:visible`), read `offsetHeight` (forces reflow), then restore by clearing the inline style. Compare the natural height against `1.5 × computedLineHeight`. This threshold cleanly separates 1-line content (~20px) from 2+-line content (~40px) without being tripped up by sub-pixel rounding differences.
 
-Clicking "More information" toggles `.notif-desc-expanded` on `.notif-desc`, which overrides the clamp with `display: block`. The button label toggles between "More information" and "Less information".
+- If `naturalH > lineH * 1.5` → text is truncated; add `.notif-expandable` to the card
+- If `naturalH <= lineH * 1.5` → text fits; no action needed
+
+**Disclosure:** clicking anywhere on a `.notif-expandable` card toggles `.notif-desc-expanded` on `.notif-desc`, which overrides the clamp with `display: block`. Clicks on `.notif-action-btn` or `.notif-close` are excluded via `e.target.closest()` so those buttons work normally. `.notif-expandable .notif-body` gets `cursor: pointer` to indicate the body is clickable.
+
+**Why not `scrollHeight > clientHeight`?** Browsers cap `scrollHeight` to the clamped height when `-webkit-line-clamp` is active in some versions, and sub-pixel rounding makes the values differ by 1px even for single-line content — causing false positives either way.
 
 ### Auto-dismiss
 
