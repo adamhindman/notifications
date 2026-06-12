@@ -75,7 +75,15 @@
 
       const CLOSE_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
+      const COLORS = { error: '#F04248', warning: '#FFD21E', success: '#00DF80', info: '#017FA5' };
+
       function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+      function dismissNotif(el) {
+        if (el.classList.contains('notif-dismissing')) return;
+        el.classList.add('notif-dismissing');
+        el.addEventListener('animationend', () => el.remove(), { once: true });
+      }
 
       function spawnNotif(type) {
         const TYPES = ['error', 'warning', 'info', 'success'];
@@ -88,6 +96,7 @@
 
         const el = document.createElement('div');
         el.className = 'notif';
+        el.style.setProperty('--notif-color', COLORS[type]);
         el.innerHTML = `
           <div class="notif-icon">${ICONS[type]}</div>
           <div class="notif-body">
@@ -99,7 +108,7 @@
             <button class="notif-close" aria-label="Close">${CLOSE_SVG}</button>
           </div>`;
 
-        el.querySelector('.notif-close').addEventListener('click', () => el.remove());
+        el.querySelector('.notif-close').addEventListener('click', () => dismissNotif(el));
 
         document.getElementById('notif-stack').prepend(el);
 
@@ -119,8 +128,16 @@
         });
 
         if (autoDismiss) {
-          const timer = setTimeout(() => el.remove(), 5000);
-          el.addEventListener('click', () => clearTimeout(timer), { once: true });
+          const progressEl = document.createElement('div');
+          progressEl.className = 'notif-progress';
+          el.prepend(progressEl);
+
+          const timer = setTimeout(() => dismissNotif(el), 5000);
+          el.addEventListener('click', (e) => {
+            if (e.target.closest('.notif-close')) return;
+            clearTimeout(timer);
+            progressEl.style.animationPlayState = 'paused';
+          }, { once: true });
         }
       }
     </script>
