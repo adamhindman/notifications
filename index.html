@@ -87,7 +87,20 @@
       function dismissNotif(el) {
         if (el.classList.contains('notif-dismissing')) return;
         el.classList.add('notif-dismissing');
-        el.addEventListener('animationend', () => el.remove(), { once: true });
+        el.addEventListener('animationend', () => {
+          const cs = getComputedStyle(el);
+          el.style.height = el.offsetHeight + 'px';
+          el.style.paddingTop = cs.paddingTop;
+          el.style.paddingBottom = cs.paddingBottom;
+          el.style.marginBottom = cs.marginBottom;
+          el.offsetHeight; // force reflow before transitioning
+          el.style.transition = 'height 0.2s ease, padding-top 0.2s ease, padding-bottom 0.2s ease, margin-bottom 0.2s ease';
+          el.style.height = '0';
+          el.style.paddingTop = '0';
+          el.style.paddingBottom = '0';
+          el.style.marginBottom = '0';
+          el.addEventListener('transitionend', () => el.remove(), { once: true });
+        }, { once: true });
       }
 
       function spawnNotif(type) {
