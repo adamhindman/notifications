@@ -87,16 +87,19 @@
   overflow: hidden;
   max-height: 1.45em;
   line-height: 1.45;
-  position: relative;
+}
+
+.notif-desc::before {
+  content: '';
+  float: right;
+  height: 100%;
 }
 
 .notif-desc::after {
   content: '… more';
-  position: absolute;
-  bottom: 0;
-  right: 0;
+  float: right;
+  clear: right;
   color: #5b9cf6;
-  background: rgba(28, 31, 38, 0.85);
   padding-left: 6px;
   font-size: 13px;
 }
@@ -104,6 +107,11 @@
 .notif-desc.notif-desc-expanded {
   max-height: none;
   overflow: visible;
+}
+
+.notif-desc.notif-desc-expanded::before,
+.notif-desc.notif-desc-expanded::after {
+  display: none;
 }
 
 .notif-actions {
