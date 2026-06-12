@@ -1,11 +1,19 @@
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ── Notification ── */
-.notif {
+/* ── Notifications ── */
+.notif-stack {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 720px;
+  min-width: 480px;
+}
+
+.notif {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -13,8 +21,6 @@
   background: #1c1f26;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.45);
-  max-width: 720px;
-  min-width: 480px;
   color: #fff;
 }
 
