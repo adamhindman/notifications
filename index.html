@@ -111,23 +111,11 @@
         requestAnimationFrame(() => {
           const descEl = el.querySelector('.notif-desc');
           const moreBtn = el.querySelector('.notif-more');
-
-          // Measure the text's natural height by cloning offscreen with clamping removed.
-          // Avoids mutating the live element (unreliable) and avoids scrollHeight
-          // (which browsers cap at clamped height when -webkit-line-clamp is active).
-          const probe = descEl.cloneNode(true);
-          probe.style.position = 'absolute';
-          probe.style.visibility = 'hidden';
-          probe.style.pointerEvents = 'none';
-          probe.style.display = 'block';
-          probe.style.setProperty('-webkit-line-clamp', 'unset');
-          probe.style.overflow = 'visible';
-          probe.style.width = descEl.offsetWidth + 'px';
-          document.body.appendChild(probe);
-          const naturalH = probe.offsetHeight;
-          probe.remove();
-
-          if (naturalH <= descEl.offsetHeight + 2) moreBtn.hidden = true;
+          const lineH = parseFloat(getComputedStyle(descEl).lineHeight);
+          descEl.style.cssText = 'display:block;-webkit-line-clamp:unset;overflow:visible';
+          const naturalH = descEl.offsetHeight;
+          descEl.style.cssText = '';
+          if (naturalH <= lineH * 1.5) moreBtn.hidden = true;
         });
 
         if (autoDismiss) {
