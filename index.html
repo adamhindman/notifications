@@ -93,7 +93,6 @@
           <div class="notif-body">
             <div class="notif-heading">${heading}</div>
             <p class="notif-desc">${desc}</p>
-            <button class="notif-more">More information</button>
           </div>
           <div class="notif-actions">
             <button class="notif-action-btn">Button Label</button>
@@ -101,21 +100,22 @@
           </div>`;
 
         el.querySelector('.notif-close').addEventListener('click', () => el.remove());
-        el.querySelector('.notif-more').addEventListener('click', function() {
-          const expanded = el.querySelector('.notif-desc').classList.toggle('notif-desc-expanded');
-          this.textContent = expanded ? 'Less information' : 'More information';
-        });
 
         document.getElementById('notif-stack').prepend(el);
 
         requestAnimationFrame(() => {
           const descEl = el.querySelector('.notif-desc');
-          const moreBtn = el.querySelector('.notif-more');
           const lineH = parseFloat(getComputedStyle(descEl).lineHeight);
           descEl.style.cssText = 'display:block;-webkit-line-clamp:unset;overflow:visible';
           const naturalH = descEl.offsetHeight;
           descEl.style.cssText = '';
-          if (naturalH <= lineH * 1.5) moreBtn.hidden = true;
+          if (naturalH > lineH * 1.5) {
+            el.classList.add('notif-expandable');
+            el.addEventListener('click', (e) => {
+              if (e.target.closest('.notif-close, .notif-action-btn')) return;
+              descEl.classList.toggle('notif-desc-expanded');
+            });
+          }
         });
 
         if (autoDismiss) {

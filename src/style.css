@@ -21,7 +21,7 @@
 .notif {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 24px;
   padding: 16px 18px;
   animation: notif-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   background: #1c1f26;
@@ -67,18 +67,7 @@
   overflow: visible;
 }
 
-.notif-more {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #5b9cf6;
-  font-size: 13px;
-  padding: 4px 0 0;
-  display: block;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.notif-more:hover { color: #7db3fa; }
+.notif-expandable .notif-body { cursor: pointer; }
 
 .notif-actions {
   display: flex;
