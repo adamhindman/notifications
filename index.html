@@ -112,7 +112,10 @@
         const moreBtn = el.querySelector('.notif-more');
         if (descEl.scrollHeight <= descEl.clientHeight) moreBtn.hidden = true;
 
-        if (autoDismiss) setTimeout(() => el.remove(), 5000);
+        if (autoDismiss) {
+          const timer = setTimeout(() => el.remove(), 5000);
+          el.addEventListener('click', () => clearTimeout(timer), { once: true });
+        }
       }
     </script>
 
