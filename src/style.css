@@ -99,7 +99,7 @@
 .notif-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   flex-shrink: 0;
   align-self: center;
 }
