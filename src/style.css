@@ -70,6 +70,7 @@
 .notif-body {
   flex: 1;
   min-width: 0;
+  cursor: pointer;
 }
 
 .notif-heading {
@@ -84,19 +85,26 @@
   color: #c8cdd6;
   margin: 0;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  max-height: 1.45em;
   line-height: 1.45;
+  position: relative;
+}
+
+.notif-desc::after {
+  content: '… more';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  color: #5b9cf6;
+  background: rgba(28, 31, 38, 0.85);
+  padding-left: 6px;
+  font-size: 13px;
 }
 
 .notif-desc.notif-desc-expanded {
-  display: block;
-  -webkit-line-clamp: unset;
+  max-height: none;
   overflow: visible;
 }
-
-.notif-expandable .notif-body { cursor: pointer; }
 
 .notif-actions {
   display: flex;

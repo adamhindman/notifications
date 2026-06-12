@@ -115,22 +115,12 @@
 
         el.querySelector('.notif-close').addEventListener('click', () => dismissNotif(el));
 
-        document.getElementById('notif-stack').prepend(el);
-
-        requestAnimationFrame(() => {
-          const descEl = el.querySelector('.notif-desc');
-          const lineH = parseFloat(getComputedStyle(descEl).lineHeight);
-          descEl.style.cssText = 'display:block;-webkit-line-clamp:unset;overflow:visible';
-          const naturalH = descEl.offsetHeight;
-          descEl.style.cssText = '';
-          if (naturalH > lineH * 1.5) {
-            el.classList.add('notif-expandable');
-            el.addEventListener('click', (e) => {
-              if (e.target.closest('.notif-close, .notif-action-btn')) return;
-              descEl.classList.toggle('notif-desc-expanded');
-            });
-          }
+        const descEl = el.querySelector('.notif-desc');
+        el.querySelector('.notif-body').addEventListener('click', () => {
+          descEl.classList.toggle('notif-desc-expanded');
         });
+
+        document.getElementById('notif-stack').prepend(el);
 
         if (autoDismiss) {
           const progressEl = document.createElement('div');
