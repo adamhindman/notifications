@@ -16,44 +16,44 @@ Each notification is a `.notif` div with three children:
 
 ```
 .notif
-  .notif-icon       — 24×24 SVG icon, aligned to the top of the card
-  .notif-body       — heading + description (cursor: pointer on expandable cards)
-    .notif-heading  — bold title text
-    .notif-desc     — description, clamped to 1 line by default
-  .notif-actions    — right-aligned action button + close button
-    button.notif-action-btn — CTA with a random label from ACTION_LABELS
-    button.notif-close      — circular × button
+  .notif-icon       — 24×24 SVG icon, flex-shrink: 0, aligned to top (align-self: flex-start, padding-top: 2px)
+  .notif-body       — flex: 1, min-width: 0; cursor: pointer only on .notif-expandable cards
+    .notif-heading  — 14px bold white, margin-bottom: 2px
+    .notif-desc     — 13.5px, color #c8cdd6, line-height 1.45, max-height 1.45em, overflow hidden
+  .notif-actions    — flex, gap: 20px, align-self: center, flex-shrink: 0
+    button.notif-action-btn — 13.5px bold white, no border/background, random label from ACTION_LABELS
+    button.notif-close      — 30×30px circle, border: 1.5px solid rgba(255,255,255,0.18)
 ```
 
-Notifications are prepended into `#notif-stack` (fixed top-right, flex column) so the newest always appears at the top. Spacing between cards is `margin-bottom: 10px` on `.notif` (not `gap`) so it can be animated during dismissal.
+`.notif` layout: `display: flex; align-items: center; gap: 24px; padding: 16px 18px`.
+
+Notifications are prepended into `#notif-stack` (fixed, `top: 20px; right: 20px`, `min-width: 480px; max-width: 720px`, flex column) so the newest always appears at the top. Spacing between cards is `margin-bottom: 10px` on `.notif` — not `gap` — so it can be animated to zero during dismissal.
 
 ---
 
 ## Four notification types
 
-| Type    | Icon color | Icon shape                        |
-|---------|------------|-----------------------------------|
-| error   | `#F04248`  | Seal/badge with exclamation mark  |
-| warning | `#FFD21E`  | Filled circle with exclamation    |
-| success | `#00DF80`  | Sparkle / magic wand              |
-| info    | `#017FA5`  | Speech bubble with dot            |
+| Type    | Icon color | Icon shape                       |
+|---------|------------|----------------------------------|
+| error   | `#F04248`  | Seal/badge with exclamation mark |
+| warning | `#FFD21E`  | Filled circle with exclamation   |
+| success | `#00DF80`  | Sparkle / magic wand             |
+| info    | `#017FA5`  | Speech bubble with dot           |
 
-The icon SVGs are stored in the `ICONS` object in the inline `<script>`. Each is a 24×24 Material-style SVG. The notification background is always `#1c1f26` (dark) regardless of type — the icon is the only type indicator.
+The icon SVGs are stored in the `ICONS` object in the inline `<script>`. Each is a 24×24 Material-style SVG. The notification background is always `#1c1f26`; the icon is the only type indicator.
 
-Each notification sets a `--notif-color` CSS custom property (matching its icon color) used by the progress bar.
+Each notification sets `--notif-color` on its root element (matching its icon color). This is consumed by `.notif-progress`.
 
 ---
 
 ## Spawning notifications
 
-All notifications are created dynamically by `spawnNotif(type)`, where `type` is `'error'`, `'warning'`, `'info'`, `'success'`, or `'random'`.
+`spawnNotif(type)` — `type` is `'error'`, `'warning'`, `'info'`, `'success'`, or `'random'`.
 
-- If `type === 'random'`, it is resolved to one of the four real types first.
-- After resolving the type, `Math.random() < 0.5` determines whether the notification auto-dismisses. Any spawned notification — regardless of which button triggered it — may or may not auto-dismiss.
-
-The `CONTENT` object holds arrays of `headings` and `descs` per type. Each call picks one of each at random. Descriptions intentionally vary in length to exercise the truncation/disclosure behaviour.
-
-The `ACTION_LABELS` array holds 12 generic CTA strings (e.g. "Learn more", "Retry", "Fix now"). Each notification picks one at random.
+- `'random'` resolves to one of the four real types via `pick(TYPES)` before anything else.
+- `autoDismiss = Math.random() < 0.5` — decided immediately after type resolution. Any notification from any button can be either persistent or auto-dismissing.
+- Heading and description are each picked at random from `CONTENT[type].headings` / `.descs`.
+- Action button label is picked at random from `ACTION_LABELS` (12 options).
 
 ---
 
@@ -61,97 +61,108 @@ The `ACTION_LABELS` array holds 12 generic CTA strings (e.g. "Learn more", "Retr
 
 ### Description truncation + disclosure
 
-`.notif-desc` is clamped to one line via `max-height: 1.45em; overflow: hidden`. This approach (rather than `-webkit-line-clamp`) makes truncation detectable via `scrollHeight > clientHeight`.
+`.notif-desc` is clamped to one line via `max-height: 1.45em; overflow: hidden`. `max-height` (unlike `-webkit-line-clamp`) does not suppress `scrollHeight`, making truncation detectable via `scrollHeight > clientHeight`.
 
-After the notification is inserted into the DOM, a `requestAnimationFrame` callback checks:
+**Detection** runs in a `requestAnimationFrame` after `prepend()`, so layout is complete:
 
 ```js
-if (descEl.scrollHeight > descEl.clientHeight) {
-  el.classList.add('notif-expandable');
-  // wire click handler
-}
+requestAnimationFrame(() => {
+  if (descEl.scrollHeight > descEl.clientHeight) {
+    el.classList.add('notif-expandable');
+    el.querySelector('.notif-body').addEventListener('click', () => {
+      descEl.classList.toggle('notif-desc-expanded');
+    });
+  }
+});
 ```
 
-**If truncated** (`.notif-expandable`):
-- A `… More` label appears at the bottom-right via `::after`, with a short left-to-right gradient masking the text behind it. Styled italic, muted (`#8b92a5`), normal weight — visually distinct from the bold action button.
-- `.notif-body` gets `cursor: pointer`.
-- Clicking `.notif-body` toggles `.notif-desc-expanded`, which overrides `max-height` with `none`.
+**If truncated** (`.notif-expandable` on the card):
+- `::after` on `.notif-desc` renders `… More` — `position: absolute; bottom: 0; right: 0`. Background is `linear-gradient(to right, transparent, #1c1f26 40%)` with `padding-left: 24px` to mask text behind it. Color `#8b92a5`, `font-style: italic`, `font-weight: normal` — visually distinct from the bold action button. `pointer-events: none`.
+- `.notif-expandable .notif-body` gets `cursor: pointer`.
+- Clicking `.notif-body` toggles `.notif-desc-expanded` on `.notif-desc`, which sets `max-height: none; overflow: visible`, revealing the full text. `… More` disappears via `:not(.notif-desc-expanded)` selector.
 
-**If not truncated**: no indicator, no click handler, default cursor.
+**If not truncated**: no class added, no click handler, default cursor.
 
 ### Auto-dismiss and countdown bar
 
-When `autoDismiss` is true, a `.notif-progress` div is prepended inside the notification. It animates via `@keyframes notif-progress` (scaleX 1→0 over 5s, `transform-origin: left center`) using `--notif-color` as its color. A `setTimeout` fires `dismissNotif(el)` after 5000ms.
+When `autoDismiss` is true:
+- A `.notif-progress` div is `prepend`-ed inside `.notif` — `position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--notif-color); transform-origin: left center`.
+- `@keyframes notif-progress` animates `scaleX` from `1` to `0` over **5000ms linear**, providing a visual countdown.
+- `setTimeout(() => dismissNotif(el), 5000)` fires the dismissal.
 
-### Pause on click
+**Pause on click:** a one-time `click` listener on `el` calls `clearTimeout(timer)` and sets `progressEl.style.animationPlayState = 'paused'`. The close button (`e.target.closest('.notif-close')`) is excluded. Once paused, the card is permanent until manually closed.
 
-For auto-dismiss notifications: a one-time `click` listener calls `clearTimeout(timer)` and sets `progressEl.style.animationPlayState = 'paused'`. Clicking the close button is excluded. Once paused, the notification stays until manually dismissed.
+### Dismiss (`dismissNotif`)
 
-### Dismiss
+All programmatic and button-triggered dismissals go through `dismissNotif(el)`. Guard at top: `if (el.classList.contains('notif-dismissing')) return` prevents double-firing.
 
-All dismissals go through `dismissNotif(el)`:
+**Phase 1 — slide out:** adds `.notif-dismissing` → `@keyframes notif-out` plays:
+```
+from: current position
+to:   translateX(calc(100% + 40px)), opacity: 0
+duration: 0.2s ease-in, fill-mode: forwards
+pointer-events: none (on .notif-dismissing)
+```
 
-1. Adds `.notif-dismissing` — plays `@keyframes notif-out` (slide right + fade, 0.2s ease-in).
-2. On `animationend`: locks the element's current height, padding, and margin-bottom as inline styles, forces a reflow, then transitions them all to `0` over 0.2s. This collapses the vertical space and smoothly reflows remaining notifications.
-3. On `transitionend`: calls `el.remove()`.
+**Phase 2 — height collapse** (on `animationend`, `{ once: true }`):
+1. Read current computed values: `el.offsetHeight`, `cs.paddingTop`, `cs.paddingBottom`, `cs.marginBottom` — lock them as inline styles.
+2. `el.offsetHeight` — force reflow so the browser registers the locked values before transitioning.
+3. Set `transition: height 0.2s ease, padding-top 0.2s ease, padding-bottom 0.2s ease, margin-bottom 0.2s ease`.
+4. Set all four to `0` — card collapses vertically, cards below slide up smoothly.
+5. On `transitionend` (`{ once: true }`): `el.remove()`.
 
-The guard `if (el.classList.contains('notif-dismissing')) return` prevents double-firing.
+Total dismiss wall-clock: **~0.4s** (0.2s slide + 0.2s collapse, sequential).
 
 ### Swipe to dismiss (mobile)
 
-Each notification has `touchstart` / `touchmove` / `touchend` listeners:
+Touch listeners are attached inline in `spawnNotif`. All are `{ passive: true }`.
 
-- **`touchstart`**: records start position, clears inline transition.
-- **`touchmove`**: waits for 5px of movement before deciding horizontal vs. vertical (avoids stealing scroll). Only tracks rightward swipes. Translates the card and fades opacity proportionally.
-- **`touchend`**: if swipe distance > 80px, adds `notif-dismissing`, slides the card off-screen, then collapses height/padding/margin the same way as a normal dismiss. If under the threshold, springs back with the entry easing.
+**`touchstart`:** records `swipeStartX/Y`, resets `swipeDx = 0`, `swipeIsHoriz = null`. Sets `el.style.transition = 'none'` so the card tracks the finger with zero lag.
 
----
+**`touchmove`:** waits for **5px** of movement before committing to a direction (`swipeIsHoriz = Math.abs(dx) > Math.abs(dy)`). Once committed to vertical, ignores all further movement (lets the page scroll normally). For horizontal: `swipeDx = Math.max(0, dx)` (right-only). Sets:
+- `el.style.transform = translateX(${swipeDx}px)`
+- `el.style.opacity = max(0, 1 - swipeDx / 200)` — fully transparent at 200px
 
-## Entry animation
-
-```css
-@keyframes notif-in {
-  from { transform: translateX(calc(100% + 40px)); opacity: 0; }
-  to   { transform: translateX(0);                 opacity: 1; }
-}
-.notif {
-  animation: notif-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-```
+**`touchend`:** threshold is **80px**.
+- **≥ 80px:** adds `notif-dismissing` (guards against timer double-fire), then:
+  - `transition: transform 0.2s ease-out, opacity 0.2s ease-out`
+  - Animates to `translateX(calc(100% + 40px))`, opacity `0`
+  - On `transitionend` (`{ once: true }`): runs the same height-collapse sequence as Phase 2 of `dismissNotif` (lock → reflow → transition to 0 → remove)
+- **< 80px (snap back):**
+  - `transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease`
+  - Clears `transform` and `opacity` inline styles — card springs back to resting position
+  - On `transitionend` (`{ once: true }`): clears `transition` inline style
 
 ---
 
-## Exit animation and reflow
+## Animations — timing reference
 
-```css
-@keyframes notif-out {
-  to { transform: translateX(calc(100% + 40px)); opacity: 0; }
-}
-.notif-dismissing {
-  animation: notif-out 0.2s ease-in forwards;
-  pointer-events: none;
-}
-```
-
-After the slide-out completes, `dismissNotif` collapses height/padding/margin-bottom via CSS transition so remaining notifications slide up smoothly. `gap` cannot be animated, which is why spacing is `margin-bottom` on `.notif` rather than `gap` on `.notif-stack`.
+| Animation | Trigger | Duration | Easing | Notes |
+|-----------|---------|----------|--------|-------|
+| Entry slide-in | `spawnNotif` | 0.35s | `cubic-bezier(0.22, 1, 0.36, 1)` | Spring-like overshoot feel |
+| Exit slide-out | `dismissNotif` / close btn | 0.2s | `ease-in` | Phase 1 of dismiss |
+| Height collapse | After slide-out | 0.2s | `ease` | Phase 2; height + padding + margin-bottom |
+| Swipe commit slide-out | Touch ≥ 80px | 0.2s | `ease-out` | Then triggers same height collapse |
+| Swipe snap-back | Touch < 80px | 0.35s | `cubic-bezier(0.22, 1, 0.36, 1)` | Same easing as entry |
+| Countdown bar | Auto-dismiss | 5s | `linear` | scaleX 1→0 on `.notif-progress` |
 
 ---
 
 ## Debug panel
 
-A fixed panel at the bottom-left (`left: 76px` to clear the sidebar) with five buttons:
+Fixed, `bottom: 20px; left: 76px` (clears the sidebar). Five buttons:
 
-- **Error / Warning / Info / Success** — spawn a notification of that type (50% chance of auto-dismiss)
-- **Random** — spawn a notification of a randomly chosen type (50% chance of auto-dismiss)
+- **Error / Warning / Info / Success** — spawn a notification of that type (50% auto-dismiss)
+- **Random** — spawn a notification of a random type (50% auto-dismiss)
 
-The panel is styled dark (`#1c1f26`) with colour-coded buttons matching each type's icon colour at low opacity.
+Styled `#1c1f26` with colour-coded buttons at low opacity matching each type's icon color.
 
 ---
 
 ## Responsive layout
 
-- `@media (max-width: 600px)`: `.notif-stack` stretches edge-to-edge (`left: 12px; right: 12px`), width constraints removed.
-- `@media (max-width: 480px)`: `.notif` wraps (`flex-wrap: wrap`); `.notif-actions` drops to a second line, indented to align under the body text (`margin-left: calc(24px + 24px)`).
+- **`≤ 600px`**: `.notif-stack` goes edge-to-edge (`left: 12px; right: 12px`), `min-width`/`max-width` removed.
+- **`≤ 480px`**: `.notif` gets `flex-wrap: wrap`; `.notif-actions` drops to a second line with `margin-left: calc(24px + 24px)` (icon width + gap) to align under the body text.
 
 ---
 
