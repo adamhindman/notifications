@@ -128,12 +128,69 @@
 
         el.querySelector('.notif-close').addEventListener('click', () => dismissNotif(el));
 
-        const descEl = el.querySelector('.notif-desc');
-        el.querySelector('.notif-body').addEventListener('click', () => {
-          descEl.classList.toggle('notif-desc-expanded');
+        // Swipe to dismiss
+        let swipeStartX, swipeStartY, swipeDx = 0, swipeIsHoriz = null;
+        el.addEventListener('touchstart', (e) => {
+          if (el.classList.contains('notif-dismissing')) return;
+          swipeStartX = e.touches[0].clientX;
+          swipeStartY = e.touches[0].clientY;
+          swipeDx = 0;
+          swipeIsHoriz = null;
+          el.style.transition = 'none';
+        }, { passive: true });
+        el.addEventListener('touchmove', (e) => {
+          if (el.classList.contains('notif-dismissing')) return;
+          const dx = e.touches[0].clientX - swipeStartX;
+          const dy = e.touches[0].clientY - swipeStartY;
+          if (swipeIsHoriz === null) {
+            if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+            swipeIsHoriz = Math.abs(dx) > Math.abs(dy);
+          }
+          if (!swipeIsHoriz) return;
+          swipeDx = Math.max(0, dx);
+          el.style.transform = `translateX(${swipeDx}px)`;
+          el.style.opacity = String(Math.max(0, 1 - swipeDx / 200));
+        }, { passive: true });
+        el.addEventListener('touchend', () => {
+          if (!swipeIsHoriz) return;
+          if (swipeDx > 80) {
+            el.classList.add('notif-dismissing');
+            el.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+            el.style.transform = 'translateX(calc(100% + 40px))';
+            el.style.opacity = '0';
+            el.addEventListener('transitionend', () => {
+              const cs = getComputedStyle(el);
+              el.style.height = el.offsetHeight + 'px';
+              el.style.paddingTop = cs.paddingTop;
+              el.style.paddingBottom = cs.paddingBottom;
+              el.style.marginBottom = cs.marginBottom;
+              el.offsetHeight;
+              el.style.transition = 'height 0.2s ease, padding-top 0.2s ease, padding-bottom 0.2s ease, margin-bottom 0.2s ease';
+              el.style.height = '0';
+              el.style.paddingTop = '0';
+              el.style.paddingBottom = '0';
+              el.style.marginBottom = '0';
+              el.addEventListener('transitionend', () => el.remove(), { once: true });
+            }, { once: true });
+          } else {
+            el.style.transition = 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease';
+            el.style.transform = '';
+            el.style.opacity = '';
+            el.addEventListener('transitionend', () => { el.style.transition = ''; }, { once: true });
+          }
         });
 
         document.getElementById('notif-stack').prepend(el);
+
+        const descEl = el.querySelector('.notif-desc');
+        requestAnimationFrame(() => {
+          if (descEl.scrollHeight > descEl.clientHeight) {
+            el.classList.add('notif-expandable');
+            el.querySelector('.notif-body').addEventListener('click', () => {
+              descEl.classList.toggle('notif-desc-expanded');
+            });
+          }
+        });
 
         if (autoDismiss) {
           const progressEl = document.createElement('div');
