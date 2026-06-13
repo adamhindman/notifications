@@ -1,5 +1,7 @@
 # Notifications
 
+**Live demo:** https://adamhindman.github.io/notifications/
+
 A prototype in-app notification system built with vanilla JavaScript and Vite, designed for a Synapse-style project page.
 
 ## Features
