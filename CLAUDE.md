@@ -235,10 +235,11 @@ All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, 
 
 Fixed, `bottom: 20px; left: 76px`. Controls:
 
-- **Error / Warning / Info / Success / Random** — spawn a notification of that type
-- **Timer toggle** — clock icon button (`#debug-timer-toggle`); dim (`rgba(255,255,255,0.25)`) when off, bright white when on. Toggles `debugAutoDismiss` boolean. When on, all spawned notifications get a countdown timer regardless of key type. When off, none do. Default: off.
+- **Notif | Banner pill** — selects which component to spawn (`selectedComponent`); active side is full opacity with `rgba(255,255,255,0.12)` background, inactive side dimmed to 0.4 opacity. Default: Notif.
+- **Error / Warning / Info / Success / Random** — spawns immediately using `spawnSelected(type)`, which delegates to `spawnNotif` or `spawnBanner` based on `selectedComponent`.
+- **Timer toggle** — clock icon (`#debug-timer-toggle`); toggles `debugAutoDismiss`. Only affects notifications — banners are always persistent and have no auto-dismiss logic. Default: off.
 
-Divider (`.debug-divider`, 1px wide, `rgba(255,255,255,0.15)`) separates the spawn buttons from the timer toggle.
+Dividers (`.debug-divider`, 1px, `rgba(255,255,255,0.15)`) separate the pill, type buttons, and timer toggle.
 
 ---
 

@@ -1,5 +1,89 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ── Banners ── */
+#banner-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes banner-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 20px;
+  background: #1c1f26;
+  border-left: 4px solid var(--banner-color);
+  color: #fff;
+  animation: banner-in 0.25s ease-out;
+}
+
+.banner + .banner {
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.banner-dismissing {
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.banner-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-desc {
+  font-size: 13.5px;
+  color: #c8cdd6;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.banner-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 0;
+}
+.banner-action-btn:hover { opacity: 0.8; }
+
+.banner-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  background: transparent;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.banner-close:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+
 /* ── Notifications ── */
 .notif-stack {
   position: fixed;
@@ -622,6 +706,12 @@ body {
 .debug-random  { background: rgba(255,255,255,0.07); color: #c8cdd6; border-color: rgba(255,255,255,0.15); }
 
 .debug-btn:hover { opacity: 0.8; }
+
+.debug-pill { display: flex; }
+.debug-pill .debug-btn { border-radius: 0; opacity: 0.4; }
+.debug-pill .debug-btn:first-child { border-radius: 6px 0 0 6px; border-right: none; }
+.debug-pill .debug-btn:last-child  { border-radius: 0 6px 6px 0; border-left: 1px solid rgba(255,255,255,0.1); }
+.debug-pill .debug-pill-active { opacity: 1; background: rgba(255,255,255,0.12); }
 
 .debug-divider {
   width: 1px;

@@ -8,17 +8,24 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
+    <!-- ── Banner stack (dynamically populated) ── -->
+    <div id="banner-stack"></div>
+
     <!-- ── Notification stack (dynamically populated) ── -->
     <div class="notif-stack" id="notif-stack"></div>
 
     <!-- ── Debug panel ── -->
     <div class="debug-panel">
-      <span class="debug-label">Spawn</span>
-      <button class="debug-btn debug-error"   onclick="spawnNotif('error')">Error</button>
-      <button class="debug-btn debug-warning" onclick="spawnNotif('warning')">Warning</button>
-      <button class="debug-btn debug-info"    onclick="spawnNotif('info')">Info</button>
-      <button class="debug-btn debug-success" onclick="spawnNotif('success')">Success</button>
-      <button class="debug-btn debug-random"  onclick="spawnNotif('random')">Random</button>
+      <div class="debug-pill">
+        <button class="debug-btn debug-random debug-pill-active" onclick="setComponent('notif',   this)">Notif</button>
+        <button class="debug-btn debug-random"                   onclick="setComponent('banner', this)">Banner</button>
+      </div>
+      <div class="debug-divider"></div>
+      <button class="debug-btn debug-error"   onclick="spawnSelected('error')">Error</button>
+      <button class="debug-btn debug-warning" onclick="spawnSelected('warning')">Warning</button>
+      <button class="debug-btn debug-info"    onclick="spawnSelected('info')">Info</button>
+      <button class="debug-btn debug-success" onclick="spawnSelected('success')">Success</button>
+      <button class="debug-btn debug-random"  onclick="spawnSelected('random')">Random</button>
       <div class="debug-divider"></div>
       <button class="debug-btn debug-timer" id="debug-timer-toggle" onclick="toggleAutoDismiss()" aria-label="Toggle auto-dismiss timer">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15.5"/><line x1="9" y1="3" x2="15" y2="3"/></svg>
@@ -75,7 +82,75 @@
         'Take action', 'See changes', 'Fix now', 'Upgrade', 'Contact support', 'Go to file',
       ];
 
+      const BANNER_CONTENT = {
+        error: [
+          { key: 'service-outage', desc: 'Synapse is experiencing a service disruption. Some features may be unavailable.', action: 'View status' },
+          { key: 'data-loss-risk', desc: 'A critical error was detected. Please save your work and reload the page.', action: 'Reload' },
+        ],
+        warning: [
+          { key: 'browser-unsupported', desc: 'Your browser is not fully supported. For the best experience, use Chrome or Firefox.', action: 'Learn more' },
+          { key: 'quota-exceeded',      desc: 'Your organization is over its storage quota. Uploads are disabled until resolved.', action: 'Manage storage', dismissible: false },
+        ],
+        success: [
+          { key: 'maintenance-complete', desc: 'Scheduled maintenance is complete. All systems are operating normally.' },
+          { key: 'migration-done',       desc: 'Your data migration completed successfully.', action: 'View summary' },
+        ],
+        info: [
+          { key: 'new-feature',   desc: 'Introducing the new Tasks and Actions view. Track your work directly in Synapse.', action: 'Learn more' },
+          { key: 'policy-update', desc: 'Our terms of service have been updated. Please review the changes before continuing.', action: 'Review', dismissible: false },
+        ],
+      };
+
       function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+      function dismissBanner(el) {
+        if (el.classList.contains('banner-dismissing')) return;
+        el.classList.add('banner-dismissing');
+        const cs = getComputedStyle(el);
+        el.style.height = el.offsetHeight + 'px';
+        el.style.paddingTop = cs.paddingTop;
+        el.style.paddingBottom = cs.paddingBottom;
+        el.offsetHeight; // force reflow
+        el.style.transition = 'height 0.2s ease, padding-top 0.2s ease, padding-bottom 0.2s ease, opacity 0.15s ease';
+        el.style.height = '0';
+        el.style.paddingTop = '0';
+        el.style.paddingBottom = '0';
+        el.style.opacity = '0';
+        el.addEventListener('transitionend', () => el.remove(), { once: true });
+      }
+
+      function spawnBanner(type) {
+        const TYPES = ['error', 'warning', 'info', 'success'];
+        if (type === 'random') type = pick(TYPES);
+        const entry = pick(BANNER_CONTENT[type]);
+        const { key, desc, action, dismissible = true } = entry;
+        const el = document.createElement('div');
+        el.className = 'banner';
+        el.dataset.bannerKey = key;
+        el.style.setProperty('--banner-color', COLORS[type]);
+        el.innerHTML = `
+          <div class="banner-icon">${ICONS[type]}</div>
+          <div class="banner-body">
+            <p class="banner-desc">${desc}</p>
+          </div>
+          <div class="banner-actions">
+            ${action ? `<button class="banner-action-btn">${action}</button>` : ''}
+            ${dismissible ? `<button class="banner-close" aria-label="Close">${CLOSE_SVG}</button>` : ''}
+          </div>`;
+        if (dismissible) el.querySelector('.banner-close').addEventListener('click', () => dismissBanner(el));
+        document.getElementById('banner-stack').appendChild(el);
+      }
+
+      let selectedComponent = 'notif';
+      function setComponent(component, btn) {
+        selectedComponent = component;
+        document.querySelectorAll('.debug-pill .debug-btn').forEach(b => b.classList.remove('debug-pill-active'));
+        btn.classList.add('debug-pill-active');
+      }
+      function spawnSelected(type) {
+        if (selectedComponent === 'notif') spawnNotif(type);
+        else spawnBanner(type);
+      }
 
       let debugAutoDismiss = false;
       function toggleAutoDismiss() {
