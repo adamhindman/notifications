@@ -16,19 +16,24 @@
   align-items: center;
   gap: 16px;
   padding: 11px 20px;
-  background: #1c1f26;
+  background: color-mix(in srgb, var(--banner-color) 14%, #fff);
   border-left: 4px solid var(--banner-color);
-  color: #fff;
+  color: #1c1f26;
   animation: banner-in 0.25s ease-out;
 }
 
 .banner + .banner {
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(0,0,0,0.08);
 }
 
 .banner-dismissing {
   pointer-events: none;
   overflow: hidden;
+}
+
+.banner-dismissing + .banner {
+  border-top-color: transparent;
+  transition: border-top-color 0.15s ease;
 }
 
 .banner-icon {
@@ -44,7 +49,7 @@
 
 .banner-desc {
   font-size: 13.5px;
-  color: #c8cdd6;
+  color: #3d4455;
   margin: 0;
   line-height: 1.45;
 }
@@ -60,29 +65,29 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #fff;
+  color: #1c1f26;
   font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
   padding: 0;
 }
-.banner-action-btn:hover { opacity: 0.8; }
+.banner-action-btn:hover { opacity: 0.7; }
 
 .banner-close {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(0,0,0,0.2);
   background: transparent;
   cursor: pointer;
-  color: #fff;
+  color: #1c1f26;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: border-color 0.15s, background 0.15s;
 }
-.banner-close:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+.banner-close:hover { border-color: #1c1f26; background: rgba(0,0,0,0.06); }
 
 /* ── Notifications ── */
 .notif-stack {
@@ -663,6 +668,13 @@ body {
 
 .data-table tbody tr:hover { background: var(--row-hover); }
 
+/* ── Portal frame ── */
+#portal-frame {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* ── Debug panel ── */
 .debug-panel {
   position: fixed;
@@ -713,6 +725,32 @@ body {
 .debug-pill .debug-btn:last-child  { border-radius: 0 6px 6px 0; border-left: 1px solid rgba(255,255,255,0.1); }
 .debug-pill .debug-pill-active { opacity: 1; background: rgba(255,255,255,0.12); }
 
+.debug-panel-right {
+  left: auto;
+  right: 20px;
+}
+
+.debug-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(255,255,255,0.07);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23c8cdd6' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #c8cdd6;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 28px 5px 11px;
+  cursor: pointer;
+  outline: none;
+  transition: opacity 0.15s;
+}
+.debug-select:hover { opacity: 0.8; }
+.debug-select option { background: #1c1f26; color: #c8cdd6; }
+
 .debug-divider {
   width: 1px;
   height: 16px;
@@ -735,6 +773,15 @@ body {
 }
 
 @media (max-width: 480px) {
+  .banner {
+    flex-wrap: wrap;
+  }
+
+  .banner-actions {
+    width: 100%;
+    margin-left: calc(24px + 16px); /* icon width + gap — aligns below body text */
+  }
+
   .notif {
     flex-wrap: wrap;
   }

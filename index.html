@@ -613,5 +613,45 @@
 
       </div><!-- /.main -->
     </div><!-- /.shell -->
+
+    <img id="portal-frame" src="" alt="" style="display:none;">
+
+    <!-- ── Portal switcher ── -->
+    <div class="debug-panel debug-panel-right">
+      <span class="debug-label">Preview</span>
+      <select class="debug-select" id="portal-select" onchange="switchPortal(this.value)">
+        <option value="curator">Curator</option>
+        <option value="nf">NF Portal</option>
+        <option value="ad">AD Knowledge Portal</option>
+        <option value="elite">ELITE Portal</option>
+        <option value="sage">Sage Homepage</option>
+      </select>
+    </div>
+
+    <script>
+      const PORTAL_URLS = {
+        nf:    'screenshots/nf-synapse-org.png',
+        ad:    'screenshots/ad-knowledge-portal.png',
+        elite: 'screenshots/elite-portal.png',
+        sage:  'screenshots/sagebionetworks.png',
+      };
+
+      function switchPortal(value) {
+        const frame = document.getElementById('portal-frame');
+        const shell = document.querySelector('.shell');
+        const url = PORTAL_URLS[value];
+        if (value === 'curator' || !url) {
+          frame.style.display = 'none';
+          frame.src = '';
+          shell.style.display = '';
+        } else {
+          shell.style.display = 'none';
+          frame.src = url;
+          frame.style.display = 'block';
+        }
+      }
+
+      switchPortal(document.getElementById('portal-select').value);
+    </script>
   </body>
 </html>
