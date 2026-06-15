@@ -30,47 +30,36 @@
       };
 
       const CONTENT = {
-        error: {
-          headings: ['Upload failed', 'Connection error', 'Permission denied', 'Authentication failed', 'File not found', 'Sync error'],
-          descs: [
-            'The file could not be uploaded because the server rejected the request.',
-            'Unable to reach the server. Check your network connection and try again.',
-            'You do not have permission to perform this action. Contact your administrator.',
-            'Your session has expired. Please log in again to continue.',
-            'The requested resource could not be located. It may have been moved or deleted.',
-            'An unexpected error occurred while syncing your data. Changes have not been saved. Please retry the operation or contact support if the problem persists.',
-          ],
-        },
-        warning: {
-          headings: ['Storage almost full', 'Session expiring soon', 'Unsaved changes', 'Deprecated API in use', 'Rate limit approaching'],
-          descs: [
-            'You are using 92% of your storage quota.',
-            'Your session will expire in 5 minutes. Save your work.',
-            'You have unsaved changes that will be lost if you navigate away.',
-            'This project is using a deprecated API endpoint that will be removed in a future release. Please update your integration.',
-            'You are approaching the API rate limit. Slow down requests to avoid being throttled.',
-          ],
-        },
-        success: {
-          headings: ['Changes saved', 'Upload complete', 'Analysis finished', 'Export ready', 'Sync complete', 'Invitation sent'],
-          descs: [
-            'Your changes have been saved successfully.',
-            '3 files were uploaded successfully to Synapse Storage.',
-            'The analysis pipeline completed without errors. Results are now available.',
-            'Your export is ready to download. The file will be available for 48 hours.',
-            'All local changes have been synced to the server.',
-          ],
-        },
-        info: {
-          headings: ['New version available', 'Scheduled maintenance', 'Dataset updated', 'Tip', 'Collaboration invite'],
-          descs: [
-            'Synapse 3.12 is available with new features and bug fixes.',
-            'Scheduled maintenance will occur on Sunday at 2:00 AM UTC. The platform may be unavailable for up to 1 hour.',
-            'The dataset you are viewing was updated 2 hours ago by another contributor.',
-            'You can use the keyboard shortcut Ctrl+S to save your changes at any time.',
-            'You have been invited to collaborate on a new project. Visit your notifications to accept.',
-          ],
-        },
+        error: [
+          { key: 'upload-failed',     heading: 'Upload failed',        autoDismiss: false, desc: 'The file could not be uploaded because the server rejected the request.' },
+          { key: 'connection-error',  heading: 'Connection error',     autoDismiss: false, desc: 'Unable to reach the server. Check your network connection and try again.' },
+          { key: 'permission-denied', heading: 'Permission denied',    autoDismiss: false, desc: 'You do not have permission to perform this action. Contact your administrator.' },
+          { key: 'auth-failed',       heading: 'Authentication failed',autoDismiss: false, desc: 'Your session has expired. Please log in again to continue.' },
+          { key: 'file-not-found',    heading: 'File not found',       autoDismiss: false, desc: 'The requested resource could not be located. It may have been moved or deleted.' },
+          { key: 'sync-error',        heading: 'Sync error',           autoDismiss: false, desc: 'An unexpected error occurred while syncing your data. Changes have not been saved. Please retry the operation or contact support if the problem persists.' },
+        ],
+        warning: [
+          { key: 'storage-full',      heading: 'Storage almost full',    autoDismiss: false, desc: 'You are using 92% of your storage quota.' },
+          { key: 'session-expiring',  heading: 'Session expiring soon',  autoDismiss: false, desc: 'Your session will expire in 5 minutes. Save your work.' },
+          { key: 'unsaved-changes',   heading: 'Unsaved changes',        autoDismiss: false, desc: 'You have unsaved changes that will be lost if you navigate away.' },
+          { key: 'deprecated-api',    heading: 'Deprecated API in use',  autoDismiss: false, desc: 'This project is using a deprecated API endpoint that will be removed in a future release. Please update your integration.' },
+          { key: 'rate-limit',        heading: 'Rate limit approaching', autoDismiss: false, desc: 'You are approaching the API rate limit. Slow down requests to avoid being throttled.' },
+        ],
+        success: [
+          { key: 'changes-saved',     heading: 'Changes saved',      autoDismiss: true,  desc: 'Your changes have been saved successfully.' },
+          { key: 'upload-complete',   heading: 'Upload complete',    autoDismiss: true,  desc: '3 files were uploaded successfully to Synapse Storage.' },
+          { key: 'analysis-finished', heading: 'Analysis finished',  autoDismiss: true,  desc: 'The analysis pipeline completed without errors. Results are now available.' },
+          { key: 'export-ready',      heading: 'Export ready',       autoDismiss: false, desc: 'Your export is ready to download. The file will be available for 48 hours.' },
+          { key: 'sync-complete',     heading: 'Sync complete',      autoDismiss: true,  desc: 'All local changes have been synced to the server.' },
+          { key: 'invitation-sent',   heading: 'Invitation sent',    autoDismiss: true,  desc: 'Your invitation has been sent successfully.' },
+        ],
+        info: [
+          { key: 'new-version',       heading: 'New version available',  autoDismiss: false, desc: 'Synapse 3.12 is available with new features and bug fixes.' },
+          { key: 'maintenance',       heading: 'Scheduled maintenance',  autoDismiss: false, desc: 'Scheduled maintenance will occur on Sunday at 2:00 AM UTC. The platform may be unavailable for up to 1 hour.' },
+          { key: 'dataset-updated',   heading: 'Dataset updated',        autoDismiss: true,  desc: 'The dataset you are viewing was updated 2 hours ago by another contributor.' },
+          { key: 'tip',               heading: 'Tip',                    autoDismiss: true,  desc: 'You can use the keyboard shortcut Ctrl+S to save your changes at any time.' },
+          { key: 'collab-invite',     heading: 'Collaboration invite',   autoDismiss: false, desc: 'You have been invited to collaborate on a new project. Visit your notifications to accept.' },
+        ],
       };
 
       const CLOSE_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
@@ -106,14 +95,35 @@
       function spawnNotif(type) {
         const TYPES = ['error', 'warning', 'info', 'success'];
         if (type === 'random') type = pick(TYPES);
-        const autoDismiss = Math.random() < 0.5;
 
-        const data   = CONTENT[type];
-        const heading = pick(data.headings);
-        const desc    = pick(data.descs);
+        const entry = pick(CONTENT[type]);
+        const { key, heading, desc, autoDismiss } = entry;
+
+        const existing = document.querySelector(`[data-notif-key="${key}"]:not(.notif-dismissing)`);
+        if (existing) {
+          if (existing._cancelAutoDismiss) {
+            existing._cancelAutoDismiss();
+            existing._cancelAutoDismiss = null;
+          }
+          existing._notifCount++;
+          let badge = existing.querySelector('.notif-badge');
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'notif-badge';
+            existing.querySelector('.notif-heading').appendChild(badge);
+          }
+          badge.textContent = existing._notifCount;
+          badge.classList.remove('notif-badge-pulse');
+          badge.offsetWidth;
+          badge.classList.add('notif-badge-pulse');
+          badge.addEventListener('animationend', () => badge.classList.remove('notif-badge-pulse'), { once: true });
+          return;
+        }
 
         const el = document.createElement('div');
         el.className = 'notif';
+        el._notifCount = 1;
+        el.dataset.notifKey = key;
         el.style.setProperty('--notif-color', COLORS[type]);
         el.innerHTML = `
           <div class="notif-icon">${ICONS[type]}</div>
@@ -126,7 +136,23 @@
             <button class="notif-close" aria-label="Close">${CLOSE_SVG}</button>
           </div>`;
 
-        el.querySelector('.notif-close').addEventListener('click', () => dismissNotif(el));
+        el.querySelector('.notif-close').addEventListener('click', () => {
+          if (el._notifCount > 1) {
+            el._notifCount--;
+            const badge = el.querySelector('.notif-badge');
+            if (el._notifCount === 1) {
+              badge.remove();
+            } else {
+              badge.textContent = el._notifCount;
+              badge.classList.remove('notif-badge-pulse');
+              badge.offsetWidth;
+              badge.classList.add('notif-badge-pulse');
+              badge.addEventListener('animationend', () => badge.classList.remove('notif-badge-pulse'), { once: true });
+            }
+          } else {
+            dismissNotif(el);
+          }
+        });
 
         // Swipe to dismiss
         let swipeStartX, swipeStartY, swipeDx = 0, swipeIsHoriz = null;
@@ -197,12 +223,27 @@
           progressEl.className = 'notif-progress';
           el.prepend(progressEl);
 
-          const timer = setTimeout(() => dismissNotif(el), 5000);
-          el.addEventListener('click', (e) => {
-            if (e.target.closest('.notif-close')) return;
+          let remaining = 5000;
+          let startTime = Date.now();
+          let timer = setTimeout(() => dismissNotif(el), remaining);
+
+          el._cancelAutoDismiss = () => {
             clearTimeout(timer);
+            progressEl.remove();
+          };
+
+          el.addEventListener('mouseenter', () => {
+            clearTimeout(timer);
+            remaining -= Date.now() - startTime;
             progressEl.style.animationPlayState = 'paused';
-          }, { once: true });
+          });
+
+          el.addEventListener('mouseleave', () => {
+            if (el.classList.contains('notif-dismissing')) return;
+            startTime = Date.now();
+            timer = setTimeout(() => dismissNotif(el), remaining);
+            progressEl.style.animationPlayState = 'running';
+          });
         }
       }
     </script>
