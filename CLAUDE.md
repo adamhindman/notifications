@@ -19,6 +19,21 @@ These are non-obvious decisions that will produce subtle bugs if changed:
 
 ## DOM structure
 
+Two independent stacks. Banners are in normal document flow (push content down, scroll away). Notifications are a fixed overlay.
+
+```
+#banner-stack              — display: flex; flex-direction: column  [no positioning — document flow]
+  .banner                  — display: flex; align-items: center; gap: 16px; padding: 11px 20px; background: #1c1f26; border-left: 4px solid var(--banner-color); --banner-color: <type color>
+    .banner-icon           — flex-shrink: 0; display: flex; align-items: center
+    .banner-body           — flex: 1; min-width: 0
+      .banner-desc         — font-size: 13.5px; color: #c8cdd6; line-height: 1.45
+    .banner-actions        — display: flex; align-items: center; gap: 20px; flex-shrink: 0
+      button.banner-action-btn?  [omitted if no entry.action]
+      button.banner-close?       [omitted if dismissible: false]
+```
+
+Adjacent banners: `.banner + .banner` gets `border-top: 1px solid rgba(255,255,255,0.06)`.
+
 ```
 #notif-stack                — position: fixed; top: 20px; right: 20px; min-width: 480px; max-width: 720px; display: flex; flex-direction: column
   .notif                    — position: relative; overflow: hidden; display: flex; align-items: center; gap: 24px; padding: 16px 18px; margin-bottom: 10px; background: #1c1f26; border-radius: 5px; --notif-color: <type color>
@@ -70,6 +85,51 @@ Policy for reference:
 - **info**: `true` for `dataset-updated`, `tip`; `false` for `new-version`, `maintenance`, `collab-invite`
 
 `ACTION_LABELS` — 12 options, one picked at random per spawn.
+
+---
+
+## Banner content
+
+`BANNER_CONTENT[type]` is an array of objects: `{ key, desc, action?, dismissible? }`.
+
+- `action` — optional button label string; omitted for banners with no CTA
+- `dismissible` — defaults to `true`; when `false`, no close button is rendered and the user cannot dismiss the banner (only the system can remove it when the condition resolves)
+
+Non-dismissable entries: `quota-exceeded`, `policy-update`.
+
+Banners have no `autoDismiss` — they are always persistent.
+
+---
+
+## `spawnBanner(type)`
+
+1. If `type === 'random'`, resolve to a real type via `pick(TYPES)`.
+2. Pick a random entry; destructure `{ key, desc, action, dismissible = true }`.
+3. Create `.banner`; set `data-banner-key`, `--banner-color`.
+4. Set `innerHTML`: icon, body (`banner-desc`), actions (conditionally include `banner-action-btn` and `banner-close`).
+5. If `dismissible`, wire close button to `dismissBanner(el)`.
+6. `appendChild` into `#banner-stack`.
+
+---
+
+## `dismissBanner(el)`
+
+Guard: `if (el.classList.contains('banner-dismissing')) return`. Single-phase collapse (no directional slide):
+
+```js
+el.classList.add('banner-dismissing'); // pointer-events: none; overflow: hidden
+const cs = getComputedStyle(el);
+el.style.height = el.offsetHeight + 'px';
+el.style.paddingTop = cs.paddingTop;
+el.style.paddingBottom = cs.paddingBottom;
+el.offsetHeight; // force reflow
+el.style.transition = 'height 0.2s ease, padding-top 0.2s ease, padding-bottom 0.2s ease, opacity 0.15s ease';
+el.style.height = '0';
+el.style.paddingTop = '0';
+el.style.paddingBottom = '0';
+el.style.opacity = '0';
+el.addEventListener('transitionend', () => el.remove(), { once: true });
+```
 
 ---
 
@@ -221,6 +281,8 @@ All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, 
 | Swipe snap-back | 0.35s | `cubic-bezier(0.22, 1, 0.36, 1)` | clear transform/opacity inline styles |
 | Countdown bar | 5s | `linear` | `notif-progress`: `scaleX(1)→scaleX(0)`; `forwards` |
 | Badge pulse | 0.25s | `ease-out` | `notif-badge-pulse`: `scale(1)→scale(1.4)→scale(1)` |
+| Banner entry | 0.25s | `ease-out` | `banner-in`: `translateY(-6px)→0`, opacity `0→1` |
+| Banner dismiss | 0.2s / 0.15s | `ease` / `ease` | JS transition: height + padding → 0 (0.2s), opacity → 0 (0.15s) |
 
 ---
 
