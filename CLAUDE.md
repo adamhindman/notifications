@@ -29,7 +29,7 @@ These are non-obvious decisions that will produce subtle bugs if changed:
         .notif-badge?       — inline <span>; display: inline-flex; height: 18px; border-radius: 9px; background: rgba(255,255,255,0.18); font-size: 11px; font-weight: 700; padding: 0 5px; margin-left: 8px  [count ≥ 2 only]
       .notif-desc           — font-size: 13.5px; color: #c8cdd6; line-height: 1.45; max-height: 1.45em; overflow: hidden; position: relative
     .notif-actions          — display: flex; align-items: center; gap: 20px; flex-shrink: 0; align-self: center
-      button.notif-action-btn
+      button.notif-action-btn  [1–2 buttons depending on entry.actions]
       button.notif-close    — 30×30px circle; border: 1.5px solid rgba(255,255,255,0.18)
 ```
 
@@ -52,9 +52,18 @@ Icon color is the only visual type indicator; card background is always `#1c1f26
 
 ## Content and keys
 
-`CONTENT[type]` is an array of objects: `{ key, heading, desc, autoDismiss }`.
+`CONTENT[type]` is an array of objects: `{ key, heading, desc, autoDismiss, actions? }`.
 
-`autoDismiss` is fixed per key — not random:
+`actions` is an optional array of 1–2 button label strings. If present, those labels are used verbatim. If absent, a single label is picked at random from `ACTION_LABELS`. Entries with two buttons:
+- `upload-failed`: `['Retry', 'View error']`
+- `session-expiring`: `['Extend session', 'Log out']`
+- `export-ready`: `['Download', 'Share link']`
+- `new-version`: `['Update now', "What's new"]`
+- `collab-invite`: `['Accept', 'Decline']`
+
+`autoDismiss` is fixed per key and reflects intended production behavior, but **is not used at spawn time** — the global `debugAutoDismiss` toggle controls whether timers fire (see Debug panel). The per-key values are retained as the source-of-truth policy for when this prototype is wired to real triggers.
+
+Policy for reference:
 - **error**: all `false`
 - **warning**: all `false`
 - **success**: `true` for `changes-saved`, `upload-complete`, `analysis-finished`, `sync-complete`, `invitation-sent`; `false` for `export-ready`
@@ -70,7 +79,7 @@ Icon color is the only visual type indicator; card background is always `#1c1f26
 2. Pick a random entry from `CONTENT[type]`; destructure `{ key, heading, desc, autoDismiss }`.
 3. **Coalesce check** — see section below.
 4. Create `.notif` element; set `data-notif-key = key`, `_notifCount = 1`, `--notif-color`.
-5. Set `innerHTML` with icon, body (heading + desc), and actions (action btn + close btn).
+5. Build `actionBtns` HTML: `(entry.actions || [pick(ACTION_LABELS)]).map(label => \`<button class="notif-action-btn">${label}</button>\`).join('')`. Set `innerHTML` with icon, body (heading + desc), `${actionBtns}`, and close btn.
 6. Wire close button (see Deduplication).
 7. Attach touch listeners for swipe-to-dismiss.
 8. `prepend()` into `#notif-stack`.
@@ -219,6 +228,17 @@ All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, 
 
 - **≤ 600px**: `.notif-stack` — `left: 12px; right: 12px; min-width: unset; max-width: unset`
 - **≤ 480px**: `.notif` — `flex-wrap: wrap`; `.notif-actions` — `width: 100%; margin-left: calc(24px + 24px)` (aligns under body text)
+
+---
+
+## Debug panel
+
+Fixed, `bottom: 20px; left: 76px`. Controls:
+
+- **Error / Warning / Info / Success / Random** — spawn a notification of that type
+- **Timer toggle** — clock icon button (`#debug-timer-toggle`); dim (`rgba(255,255,255,0.25)`) when off, bright white when on. Toggles `debugAutoDismiss` boolean. When on, all spawned notifications get a countdown timer regardless of key type. When off, none do. Default: off.
+
+Divider (`.debug-divider`, 1px wide, `rgba(255,255,255,0.15)`) separates the spawn buttons from the timer toggle.
 
 ---
 

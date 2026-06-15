@@ -19,6 +19,10 @@
       <button class="debug-btn debug-info"    onclick="spawnNotif('info')">Info</button>
       <button class="debug-btn debug-success" onclick="spawnNotif('success')">Success</button>
       <button class="debug-btn debug-random"  onclick="spawnNotif('random')">Random</button>
+      <div class="debug-divider"></div>
+      <button class="debug-btn debug-timer" id="debug-timer-toggle" onclick="toggleAutoDismiss()" aria-label="Toggle auto-dismiss timer">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15.5"/><line x1="9" y1="3" x2="15" y2="3"/></svg>
+      </button>
     </div>
 
     <script>
@@ -31,7 +35,7 @@
 
       const CONTENT = {
         error: [
-          { key: 'upload-failed',     heading: 'Upload failed',        autoDismiss: false, desc: 'The file could not be uploaded because the server rejected the request.' },
+          { key: 'upload-failed',     heading: 'Upload failed',        autoDismiss: false, desc: 'The file could not be uploaded because the server rejected the request.', actions: ['Retry', 'View error'] },
           { key: 'connection-error',  heading: 'Connection error',     autoDismiss: false, desc: 'Unable to reach the server. Check your network connection and try again.' },
           { key: 'permission-denied', heading: 'Permission denied',    autoDismiss: false, desc: 'You do not have permission to perform this action. Contact your administrator.' },
           { key: 'auth-failed',       heading: 'Authentication failed',autoDismiss: false, desc: 'Your session has expired. Please log in again to continue.' },
@@ -40,7 +44,7 @@
         ],
         warning: [
           { key: 'storage-full',      heading: 'Storage almost full',    autoDismiss: false, desc: 'You are using 92% of your storage quota.' },
-          { key: 'session-expiring',  heading: 'Session expiring soon',  autoDismiss: false, desc: 'Your session will expire in 5 minutes. Save your work.' },
+          { key: 'session-expiring',  heading: 'Session expiring soon',  autoDismiss: false, desc: 'Your session will expire in 5 minutes. Save your work.', actions: ['Extend session', 'Log out'] },
           { key: 'unsaved-changes',   heading: 'Unsaved changes',        autoDismiss: false, desc: 'You have unsaved changes that will be lost if you navigate away.' },
           { key: 'deprecated-api',    heading: 'Deprecated API in use',  autoDismiss: false, desc: 'This project is using a deprecated API endpoint that will be removed in a future release. Please update your integration.' },
           { key: 'rate-limit',        heading: 'Rate limit approaching', autoDismiss: false, desc: 'You are approaching the API rate limit. Slow down requests to avoid being throttled.' },
@@ -49,16 +53,16 @@
           { key: 'changes-saved',     heading: 'Changes saved',      autoDismiss: true,  desc: 'Your changes have been saved successfully.' },
           { key: 'upload-complete',   heading: 'Upload complete',    autoDismiss: true,  desc: '3 files were uploaded successfully to Synapse Storage.' },
           { key: 'analysis-finished', heading: 'Analysis finished',  autoDismiss: true,  desc: 'The analysis pipeline completed without errors. Results are now available.' },
-          { key: 'export-ready',      heading: 'Export ready',       autoDismiss: false, desc: 'Your export is ready to download. The file will be available for 48 hours.' },
+          { key: 'export-ready',      heading: 'Export ready',       autoDismiss: false, desc: 'Your export is ready to download. The file will be available for 48 hours.', actions: ['Download', 'Share link'] },
           { key: 'sync-complete',     heading: 'Sync complete',      autoDismiss: true,  desc: 'All local changes have been synced to the server.' },
           { key: 'invitation-sent',   heading: 'Invitation sent',    autoDismiss: true,  desc: 'Your invitation has been sent successfully.' },
         ],
         info: [
-          { key: 'new-version',       heading: 'New version available',  autoDismiss: false, desc: 'Synapse 3.12 is available with new features and bug fixes.' },
+          { key: 'new-version',       heading: 'New version available',  autoDismiss: false, desc: 'Synapse 3.12 is available with new features and bug fixes.', actions: ['Update now', "What's new"] },
           { key: 'maintenance',       heading: 'Scheduled maintenance',  autoDismiss: false, desc: 'Scheduled maintenance will occur on Sunday at 2:00 AM UTC. The platform may be unavailable for up to 1 hour.' },
           { key: 'dataset-updated',   heading: 'Dataset updated',        autoDismiss: true,  desc: 'The dataset you are viewing was updated 2 hours ago by another contributor.' },
           { key: 'tip',               heading: 'Tip',                    autoDismiss: true,  desc: 'You can use the keyboard shortcut Ctrl+S to save your changes at any time.' },
-          { key: 'collab-invite',     heading: 'Collaboration invite',   autoDismiss: false, desc: 'You have been invited to collaborate on a new project. Visit your notifications to accept.' },
+          { key: 'collab-invite',     heading: 'Collaboration invite',   autoDismiss: false, desc: 'You have been invited to collaborate on a new project. Visit your notifications to accept.', actions: ['Accept', 'Decline'] },
         ],
       };
 
@@ -72,6 +76,13 @@
       ];
 
       function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+      let debugAutoDismiss = false;
+      function toggleAutoDismiss() {
+        debugAutoDismiss = !debugAutoDismiss;
+        const btn = document.getElementById('debug-timer-toggle');
+        btn.classList.toggle('debug-timer-active', debugAutoDismiss);
+      }
 
       function dismissNotif(el) {
         if (el.classList.contains('notif-dismissing')) return;
@@ -97,7 +108,9 @@
         if (type === 'random') type = pick(TYPES);
 
         const entry = pick(CONTENT[type]);
-        const { key, heading, desc, autoDismiss } = entry;
+        const { key, heading, desc, actions } = entry;
+        const autoDismiss = debugAutoDismiss;
+        const actionBtns = (actions || [pick(ACTION_LABELS)]).map(label => `<button class="notif-action-btn">${label}</button>`).join('');
 
         const existing = document.querySelector(`[data-notif-key="${key}"]:not(.notif-dismissing)`);
         if (existing) {
@@ -132,7 +145,7 @@
             <p class="notif-desc">${desc}</p>
           </div>
           <div class="notif-actions">
-            <button class="notif-action-btn">${pick(ACTION_LABELS)}</button>
+            ${actionBtns}
             <button class="notif-close" aria-label="Close">${CLOSE_SVG}</button>
           </div>`;
 
