@@ -21,10 +21,12 @@ Appear as cards in the top-right corner, stacking newest-on-top.
 Appear at the top of the page, push content down, and scroll away with the page.
 
 - **General-purpose** — not type-based; each banner takes an arbitrary color and a Material Icon
+- **Title + description** — a bold heading sits above the body text
 - **Radial gradient background** — pastel wash derived from the banner color, fading from the upper-left
 - **Always persistent** — no auto-dismiss
 - **Optionally non-dismissable** — some banners have no close button; they can only be removed when the underlying condition resolves
 - **Optional action button** — an outlined pill CTA; shown on a random subset of banners
+- **Truncation disclosure** — long descriptions are clamped to two lines with a `… More` affordance; clicking the body expands the full text
 
 ## Bottom notice
 
@@ -49,6 +51,7 @@ A fixed panel at the bottom-left lets you spawn any of the three components.
 - **Icon picker** — popover grid of 23 Material Icons
 - **Spawn** — spawns a banner with the current color and icon
 - **Random** — picks a random color from 36 curated options, a random icon, and random announcement text
+- **Long** — spawns a guaranteed-overflow banner for testing the `… More` disclosure
 
 **Notice mode:**
 - **Spawn** — dismisses the current notice and spawns a random one

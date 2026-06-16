@@ -29,9 +29,10 @@ Three independent components. Banners are in normal document flow (push content 
                              --banner-color: <hex>; --banner-color-dark: color-mix(in srgb, var(--banner-color) 70%, #000);
                              background: radial-gradient(ellipse 160% 500% at -10% -150%, <pastel 42%> 0%, <pastel 8%> 65%)
     .banner-icon           — flex-shrink: 0; display: flex; align-items: center; color: var(--banner-color); filter: brightness(0.65) saturate(1.3)
-                               svg: width/height 20px; .material-icons: font-size 20px
+                               svg: width/height 24px; .material-icons: font-size 24px
     .banner-body           — flex: 1; min-width: 0
-      .banner-desc         — font-size: 13.5px; color: #3d4455; line-height: 1.45
+      .banner-title?       — font-size: 14px; font-weight: 700; color: #1c1f26; margin: 0 0 2px  [omitted when entry has no title]
+      .banner-desc         — font-size: 13.5px; color: #3d4455; line-height: 1.45; max-height: calc(1.45em * 2); overflow: hidden; position: relative
     .banner-actions        — display: flex; align-items: center; gap: 20px; flex-shrink: 0
       button.banner-action-btn?  [omitted ~72% of the time; outlined pill, color: var(--banner-color-dark)]
       button.banner-close?       [omitted if dismissible: false; borderless X at 30% opacity]
@@ -130,8 +131,9 @@ The debug Spawn button picks randomly from `NOTICE_CONTENT` via `pick()`.
 
 ## Banner content
 
-`BANNER_CONTENT` is a **flat array** of objects: `{ key, desc, action?, dismissible? }`. Banners are general-purpose — no types.
+`BANNER_CONTENT` is a **flat array** of objects: `{ key, title, desc, action?, dismissible? }`. Banners are general-purpose — no types.
 
+- `title` — bold heading rendered above `desc` in `.banner-title`; present on all current entries
 - `action` — optional button label string; present in most entries but shown only ~28% of the time (random roll at spawn)
 - `dismissible` — defaults to `true`; when `false`, no close button is rendered
 
@@ -162,12 +164,19 @@ Add `.notice-dismissing` → `@keyframes notice-out` (`to: translateY(calc(100% 
 
 ---
 
-## `spawnBanner({ color, iconHtml, desc, action, dismissible })`
+## `spawnBanner({ color, iconHtml, title, desc, action, dismissible })`
 
 1. Create `.banner`; set `--banner-color` to `color`.
-2. Set `innerHTML`: `iconHtml` into `.banner-icon`, desc into `.banner-desc`, conditionally `banner-action-btn` and `banner-close`.
+2. Set `innerHTML`: `iconHtml` into `.banner-icon`; optionally `.banner-title` (omitted when `title` is falsy); desc into `.banner-desc`; conditionally `banner-action-btn` and `banner-close`.
 3. If `dismissible`, wire close button to `dismissBanner(el)`.
 4. `appendChild` into `#banner-stack`.
+5. Run truncation detection in `requestAnimationFrame` (same pattern as `spawnNotif`): if `descEl.scrollHeight > descEl.clientHeight`, add `.banner-expandable` to the card and wire a click handler on `.banner-body` to toggle `.banner-desc-expanded` on the desc element.
+
+Truncation CSS:
+- `.banner-desc` — `max-height: calc(1.45em * 2)` (3-line clamp, same `max-height` rationale as `.notif-desc`)
+- `.banner-expandable .banner-body` — `cursor: pointer`
+- `.banner-expandable .banner-desc:not(.banner-desc-expanded)::after` — renders `… More`; gradient uses `color-mix(in srgb, var(--banner-color) 8%, #fff)` to match the right-edge banner background
+- `.banner-desc-expanded` — `max-height: none; overflow: visible`
 
 `iconHtml` is a raw HTML string — either a `<span class="material-icons">name</span>` or an SVG with `fill="currentColor"`. The `.banner-icon` CSS filter handles darkening.
 
@@ -370,6 +379,7 @@ Fixed, `bottom: 20px; left: 20px`. Three modes controlled by the **Notif | Banne
 - **Icon picker** — custom popover grid of 23 Material Icons (4-column); clicking an icon selects it and updates the trigger preview. Opens/closes via `toggleIconPicker(e)` with `e.stopPropagation()` to prevent immediate close from the document-level outside-click listener.
 - **Spawn** — spawns a banner with the current color + icon + random content entry
 - **Random** — picks a random color from `BANNER_COLORS` (36 curated), a random icon from `BANNER_ICONS` (23), and random content; syncs the color picker and icon picker UI
+- **Long** — always spawns the `long-test` entry (guaranteed to overflow) using the current color + icon; for testing the truncation disclosure
 
 ### Notice mode
 - **Spawn** — dismisses the current notice (if any) and spawns a new random one from `NOTICE_CONTENT`

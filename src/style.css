@@ -44,11 +44,11 @@
   filter: brightness(0.65) saturate(1.3);
 }
 .banner-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 .banner-icon .material-icons {
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
   color: var(--banner-color);
 }
@@ -58,11 +58,43 @@
   min-width: 0;
 }
 
+.banner-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1c1f26;
+  margin: 0 0 2px;
+}
+
 .banner-desc {
   font-size: 13.5px;
   color: #3d4455;
   margin: 0;
   line-height: 1.45;
+  max-height: calc(1.45em * 2);
+  overflow: hidden;
+  position: relative;
+}
+
+.banner-expandable .banner-body {
+  cursor: pointer;
+}
+
+.banner-desc.banner-desc-expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+.banner-expandable .banner-desc:not(.banner-desc-expanded)::after {
+  content: '… More';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding-left: 24px;
+  background: linear-gradient(to right, transparent, color-mix(in srgb, var(--banner-color) 8%, #fff) 40%);
+  color: #8b92a5;
+  font-weight: normal;
+  font-style: italic;
+  pointer-events: none;
 }
 
 .banner-actions {

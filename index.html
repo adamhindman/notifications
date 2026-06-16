@@ -45,6 +45,7 @@
         <button class="debug-btn debug-random" onclick="spawnSelected()">Spawn</button>
         <div class="debug-divider"></div>
         <button class="debug-btn debug-random" onclick="randomBanner()">Random</button>
+        <button class="debug-btn debug-random" onclick="spawnLongBanner()">Long</button>
       </div>
       <div id="debug-notice-controls" style="display:none">
         <button class="debug-btn debug-random" onclick="spawnSelected()">Spawn</button>
@@ -108,20 +109,21 @@
       ];
 
       const BANNER_CONTENT = [
-        { key: 'new-portal',         desc: 'The NF Data Portal has launched a redesigned data explorer with improved filtering and cross-study comparison tools.', action: 'Explore now' },
-        { key: 'dataset-milestone',  desc: 'The HTAN consortium has surpassed 5 petabytes of openly shared single-cell data. Thank you to all contributing sites.', action: 'Browse datasets' },
-        { key: 'webinar-invite',     desc: 'Join us Wednesday, June 18 for a live walkthrough of the new Synapse collaborative workspace features. Open to all users.', action: 'Register' },
-        { key: 'funding-news',       desc: 'Sage Bionetworks has been awarded a 4-year NCI grant to expand FAIR data infrastructure for cancer genomics research.', action: 'Read more' },
-        { key: 'submission-deadline',desc: 'The deadline to submit data for the 2025 AD Knowledge Portal annual release is July 1. Late submissions will be held until 2026.', action: 'Submit data' },
-        { key: 'new-consortium',     desc: 'Welcome to the Pediatric Cancer Data Commons, the newest member of the Synapse research network.', action: 'Learn more' },
-        { key: 'publication',        desc: 'A new paper describing the ELITE Portal cohort and data model has been published in Nature Scientific Data.', action: 'View paper' },
-        { key: 'api-update',         desc: 'Synapse REST API v3 is now available, with improved pagination, batch operations, and OAuth 2.0 support. v2 will be deprecated in 90 days.', action: 'Migration guide' },
-        { key: 'challenge-launch',   desc: 'The 2025 Brain Tumor Segmentation Challenge is now open for registration. Submit your model by August 31.', action: 'Register' },
-        { key: 'feedback-request',   desc: 'Help us improve Synapse. We\'re running a 5-minute survey on data discovery and reuse. Your input directly shapes our roadmap.', action: 'Take survey' },
-        { key: 'platform-update',    desc: 'Synapse 4.0 is here — featuring a redesigned project dashboard, inline data previews, and a new permissions model.', action: "What\'s new" },
-        { key: 'community-highlight',desc: 'Researchers using the NF Portal identified two novel therapeutic targets for plexiform neurofibroma. Read the open-access preprint.', action: 'Read preprint' },
-        { key: 'policy-update',      desc: 'Our data governance policy has been updated to reflect NIH data sharing requirements effective January 2025. Review before your next submission.', action: 'Review policy', dismissible: false },
-        { key: 'maintenance-window', desc: 'Synapse will be in read-only mode on Saturday, June 21 from 10 PM – 2 AM UTC for infrastructure upgrades.', action: 'View schedule' },
+        { key: 'new-portal',         title: 'NF Data Portal redesigned',               desc: 'The NF Data Portal has launched a redesigned data explorer with improved filtering and cross-study comparison tools.', action: 'Explore now' },
+        { key: 'dataset-milestone',  title: 'HTAN hits 5 petabytes',                   desc: 'The HTAN consortium has surpassed 5 petabytes of openly shared single-cell data. Thank you to all contributing sites.', action: 'Browse datasets' },
+        { key: 'webinar-invite',     title: 'Live walkthrough — June 18',              desc: 'Join us Wednesday, June 18 for a live walkthrough of the new Synapse collaborative workspace features. Open to all users.', action: 'Register' },
+        { key: 'funding-news',       title: 'New NCI grant awarded',                   desc: 'Sage Bionetworks has been awarded a 4-year NCI grant to expand FAIR data infrastructure for cancer genomics research.', action: 'Read more' },
+        { key: 'submission-deadline',title: 'Data submission deadline: July 1',        desc: 'The deadline to submit data for the 2025 AD Knowledge Portal annual release is July 1. Late submissions will be held until 2026.', action: 'Submit data' },
+        { key: 'new-consortium',     title: 'Welcome, Pediatric Cancer Data Commons',  desc: 'Welcome to the Pediatric Cancer Data Commons, the newest member of the Synapse research network.', action: 'Learn more' },
+        { key: 'publication',        title: 'New publication in Scientific Data',      desc: 'A new paper describing the ELITE Portal cohort and data model has been published in Nature Scientific Data.', action: 'View paper' },
+        { key: 'api-update',         title: 'Synapse REST API v3 now available',       desc: 'Synapse REST API v3 is now available, with improved pagination, batch operations, and OAuth 2.0 support. v2 will be deprecated in 90 days.', action: 'Migration guide' },
+        { key: 'challenge-launch',   title: '2025 Brain Tumor Segmentation Challenge', desc: 'The 2025 Brain Tumor Segmentation Challenge is now open for registration. Submit your model by August 31.', action: 'Register' },
+        { key: 'feedback-request',   title: 'Share your feedback',                     desc: 'Help us improve Synapse. We\'re running a 5-minute survey on data discovery and reuse. Your input directly shapes our roadmap.', action: 'Take survey' },
+        { key: 'platform-update',    title: 'Synapse 4.0 is here',                     desc: 'Synapse 4.0 is here — featuring a redesigned project dashboard, inline data previews, and a new permissions model.', action: "What\'s new" },
+        { key: 'community-highlight',title: 'Community research highlight',            desc: 'Researchers using the NF Portal identified two novel therapeutic targets for plexiform neurofibroma. Read the open-access preprint.', action: 'Read preprint' },
+        { key: 'policy-update',      title: 'Data governance policy updated',          desc: 'Our data governance policy has been updated to reflect NIH data sharing requirements effective January 2025. Review before your next submission.', action: 'Review policy', dismissible: false },
+        { key: 'maintenance-window', title: 'Scheduled maintenance — June 21',         desc: 'Synapse will be in read-only mode on Saturday, June 21 from 10 PM – 2 AM UTC for infrastructure upgrades.', action: 'View schedule' },
+        { key: 'long-test',          title: 'Infrastructure overhaul — action required', desc: 'This is an extremely long test banner description designed to blow well past three lines under any viewport or font configuration. The Synapse platform has undergone a comprehensive infrastructure overhaul spanning data ingestion pipelines, permission models, federated identity, and the collaborative workspace layer. All existing integrations should continue to function without modification, but administrators are strongly encouraged to review the updated API documentation, audit their OAuth scopes, and run a full end-to-end test in the staging environment before the production rollout begins on July 14. Teams relying on the v2 batch endpoint should migrate to v3 immediately, as the legacy endpoint will return HTTP 410 after the cutover. Detailed migration guides, compatibility matrices, and a recorded walkthrough of the new permission model are available in the developer portal. If you have questions or encounter unexpected behavior during testing, please open a support ticket and reference tracking code INF-2025-0714 so your report is routed directly to the infrastructure team.', action: 'Learn more' },
       ];
 
       const NOTICE_CONTENT = [
@@ -198,13 +200,14 @@
         spawnNotice(pick(NOTICE_CONTENT));
       }
 
-      function spawnBanner({ color, iconHtml, desc, action, dismissible = true }) {
+      function spawnBanner({ color, iconHtml, title, desc, action, dismissible = true }) {
         const el = document.createElement('div');
         el.className = 'banner';
         el.style.setProperty('--banner-color', color);
         el.innerHTML = `
           <div class="banner-icon">${iconHtml}</div>
           <div class="banner-body">
+            ${title ? `<p class="banner-title">${title}</p>` : ''}
             <p class="banner-desc">${desc}</p>
           </div>
           <div class="banner-actions">
@@ -213,6 +216,16 @@
           </div>`;
         if (dismissible) el.querySelector('.banner-close').addEventListener('click', () => dismissBanner(el));
         document.getElementById('banner-stack').appendChild(el);
+
+        const descEl = el.querySelector('.banner-desc');
+        requestAnimationFrame(() => {
+          if (descEl.scrollHeight > descEl.clientHeight) {
+            el.classList.add('banner-expandable');
+            el.querySelector('.banner-body').addEventListener('click', () => {
+              descEl.classList.toggle('banner-desc-expanded');
+            });
+          }
+        });
       }
 
       const BANNER_ICONS = [
@@ -268,13 +281,20 @@
         document.getElementById('icon-picker-dropdown').style.display = 'none';
       }
 
+      function spawnLongBanner() {
+        const color = document.getElementById('debug-banner-color').value;
+        const iconHtml = `<span class="material-icons">${selectedBannerIcon}</span>`;
+        const entry = BANNER_CONTENT.find(e => e.key === 'long-test');
+        spawnBanner({ color, iconHtml, title: entry.title, desc: entry.desc, action: entry.action });
+      }
+
       function randomBanner() {
         const color = pick(BANNER_COLORS);
         const iconName = pick(BANNER_ICONS);
         document.getElementById('debug-banner-color').value = color;
         selectBannerIcon(iconName);
-        const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
-        spawnBanner({ color, iconHtml: `<span class="material-icons">${iconName}</span>`, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
+        const { title, desc, action, dismissible = true } = pick(BANNER_CONTENT);
+        spawnBanner({ color, iconHtml: `<span class="material-icons">${iconName}</span>`, title, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
       }
 
       document.addEventListener('click', () => {
@@ -299,8 +319,8 @@
         } else if (selectedComponent === 'banner') {
           const color = document.getElementById('debug-banner-color').value;
           const iconHtml = `<span class="material-icons">${selectedBannerIcon}</span>`;
-          const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
-          spawnBanner({ color, iconHtml, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
+          const { title, desc, action, dismissible = true } = pick(BANNER_CONTENT);
+          spawnBanner({ color, iconHtml, title, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
         } else if (selectedComponent === 'notice') {
           spawnNotice(noticeSpawnedOnce ? pick(NOTICE_CONTENT) : NOTICE_CONTENT.find(e => e.heading === 'Cookie preferences'));
           noticeSpawnedOnce = true;
