@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Test Project – Synapse</title>
     <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
   </head>
   <body>
     <!-- ── Banner stack (dynamically populated) ── -->
@@ -21,15 +22,32 @@
         <button class="debug-btn debug-random"                   onclick="setComponent('banner', this)">Banner</button>
       </div>
       <div class="debug-divider"></div>
-      <button class="debug-btn debug-error"   onclick="spawnSelected('error')">Error</button>
-      <button class="debug-btn debug-warning" onclick="spawnSelected('warning')">Warning</button>
-      <button class="debug-btn debug-info"    onclick="spawnSelected('info')">Info</button>
-      <button class="debug-btn debug-success" onclick="spawnSelected('success')">Success</button>
-      <button class="debug-btn debug-random"  onclick="spawnSelected('random')">Random</button>
-      <div class="debug-divider"></div>
-      <button class="debug-btn debug-timer" id="debug-timer-toggle" onclick="toggleAutoDismiss()" aria-label="Toggle auto-dismiss timer">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15.5"/><line x1="9" y1="3" x2="15" y2="3"/></svg>
-      </button>
+      <div id="debug-notif-controls" style="display:contents">
+        <button class="debug-btn debug-error"   onclick="spawnSelected('error')">Error</button>
+        <button class="debug-btn debug-warning" onclick="spawnSelected('warning')">Warning</button>
+        <button class="debug-btn debug-info"    onclick="spawnSelected('info')">Info</button>
+        <button class="debug-btn debug-success" onclick="spawnSelected('success')">Success</button>
+        <button class="debug-btn debug-random"  onclick="spawnSelected('random')">Random</button>
+      </div>
+      <div id="debug-banner-controls" style="display:none">
+        <input type="color" id="debug-banner-color" value="#017FA5" class="debug-color-picker">
+        <div class="icon-picker">
+          <button class="icon-picker-trigger" onclick="toggleIconPicker(event)">
+            <span class="material-icons" id="icon-picker-preview">campaign</span>
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="icon-picker-dropdown" id="icon-picker-dropdown" style="display:none"></div>
+        </div>
+        <button class="debug-btn debug-random" onclick="randomBanner()">Random</button>
+        <div class="debug-divider"></div>
+        <button class="debug-btn debug-random" onclick="spawnSelected()">Spawn</button>
+      </div>
+      <div id="debug-timer-wrap" style="display:contents">
+        <div class="debug-divider"></div>
+        <button class="debug-btn debug-timer" id="debug-timer-toggle" onclick="toggleAutoDismiss()" aria-label="Toggle auto-dismiss timer">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15.5"/><line x1="9" y1="3" x2="15" y2="3"/></svg>
+        </button>
+      </div>
     </div>
 
     <script>
@@ -82,24 +100,22 @@
         'Take action', 'See changes', 'Fix now', 'Upgrade', 'Contact support', 'Go to file',
       ];
 
-      const BANNER_CONTENT = {
-        error: [
-          { key: 'service-outage', desc: 'Synapse is experiencing a service disruption. Some features may be unavailable.', action: 'View status' },
-          { key: 'data-loss-risk', desc: 'A critical error was detected. Please save your work and reload the page.', action: 'Reload' },
-        ],
-        warning: [
-          { key: 'browser-unsupported', desc: 'Your browser is not fully supported. For the best experience, use Chrome or Firefox.', action: 'Learn more' },
-          { key: 'quota-exceeded',      desc: 'Your organization is over its storage quota. Uploads are disabled until resolved.', action: 'Manage storage', dismissible: false },
-        ],
-        success: [
-          { key: 'maintenance-complete', desc: 'Scheduled maintenance is complete. All systems are operating normally.' },
-          { key: 'migration-done',       desc: 'Your data migration completed successfully.', action: 'View summary' },
-        ],
-        info: [
-          { key: 'new-feature',   desc: 'Introducing the new Tasks and Actions view. Track your work directly in Synapse.', action: 'Learn more' },
-          { key: 'policy-update', desc: 'Our terms of service have been updated. Please review the changes before continuing.', action: 'Review', dismissible: false },
-        ],
-      };
+      const BANNER_CONTENT = [
+        { key: 'new-portal',         desc: 'The NF Data Portal has launched a redesigned data explorer with improved filtering and cross-study comparison tools.', action: 'Explore now' },
+        { key: 'dataset-milestone',  desc: 'The HTAN consortium has surpassed 5 petabytes of openly shared single-cell data. Thank you to all contributing sites.', action: 'Browse datasets' },
+        { key: 'webinar-invite',     desc: 'Join us Wednesday, June 18 for a live walkthrough of the new Synapse collaborative workspace features. Open to all users.', action: 'Register' },
+        { key: 'funding-news',       desc: 'Sage Bionetworks has been awarded a 4-year NCI grant to expand FAIR data infrastructure for cancer genomics research.', action: 'Read more' },
+        { key: 'submission-deadline',desc: 'The deadline to submit data for the 2025 AD Knowledge Portal annual release is July 1. Late submissions will be held until 2026.', action: 'Submit data' },
+        { key: 'new-consortium',     desc: 'Welcome to the Pediatric Cancer Data Commons, the newest member of the Synapse research network.', action: 'Learn more' },
+        { key: 'publication',        desc: 'A new paper describing the ELITE Portal cohort and data model has been published in Nature Scientific Data.', action: 'View paper' },
+        { key: 'api-update',         desc: 'Synapse REST API v3 is now available, with improved pagination, batch operations, and OAuth 2.0 support. v2 will be deprecated in 90 days.', action: 'Migration guide' },
+        { key: 'challenge-launch',   desc: 'The 2025 Brain Tumor Segmentation Challenge is now open for registration. Submit your model by August 31.', action: 'Register' },
+        { key: 'feedback-request',   desc: 'Help us improve Synapse. We\'re running a 5-minute survey on data discovery and reuse. Your input directly shapes our roadmap.', action: 'Take survey' },
+        { key: 'platform-update',    desc: 'Synapse 4.0 is here — featuring a redesigned project dashboard, inline data previews, and a new permissions model.', action: "What\'s new" },
+        { key: 'community-highlight',desc: 'Researchers using the NF Portal identified two novel therapeutic targets for plexiform neurofibroma. Read the open-access preprint.', action: 'Read preprint' },
+        { key: 'policy-update',      desc: 'Our data governance policy has been updated to reflect NIH data sharing requirements effective January 2025. Review before your next submission.', action: 'Review policy', dismissible: false },
+        { key: 'maintenance-window', desc: 'Synapse will be in read-only mode on Saturday, June 21 from 10 PM – 2 AM UTC for infrastructure upgrades.', action: 'View schedule' },
+      ];
 
       function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -119,17 +135,12 @@
         el.addEventListener('transitionend', () => el.remove(), { once: true });
       }
 
-      function spawnBanner(type) {
-        const TYPES = ['error', 'warning', 'info', 'success'];
-        if (type === 'random') type = pick(TYPES);
-        const entry = pick(BANNER_CONTENT[type]);
-        const { key, desc, action, dismissible = true } = entry;
+      function spawnBanner({ color, iconHtml, desc, action, dismissible = true }) {
         const el = document.createElement('div');
         el.className = 'banner';
-        el.dataset.bannerKey = key;
-        el.style.setProperty('--banner-color', COLORS[type]);
+        el.style.setProperty('--banner-color', color);
         el.innerHTML = `
-          <div class="banner-icon">${ICONS[type]}</div>
+          <div class="banner-icon">${iconHtml}</div>
           <div class="banner-body">
             <p class="banner-desc">${desc}</p>
           </div>
@@ -141,16 +152,94 @@
         document.getElementById('banner-stack').appendChild(el);
       }
 
+      const BANNER_ICONS = [
+        'campaign', 'rocket_launch', 'psychology', 'celebration',
+        'security', 'auto_awesome', 'construction', 'biotech',
+        'emoji_events', 'local_fire_department', 'electric_bolt', 'schedule',
+        'new_releases', 'cloud_done', 'groups', 'explore',
+        'hub', 'science', 'show_chart', 'policy',
+        'cruelty_free', 'casino', 'skateboarding',
+      ];
+
+      const BANNER_COLORS = [
+        // Blues & cyans
+        '#017FA5', '#0891B2', '#2563EB', '#1D4ED8', '#0369A1', '#0E7490',
+        // Purples & violets
+        '#7C3AED', '#6D28D9', '#9333EA', '#7E22CE', '#A855F7', '#8B5CF6',
+        // Pinks & roses
+        '#DB2777', '#BE185D', '#EC4899', '#F43F5E', '#E11D48', '#9F1239',
+        // Reds & oranges
+        '#DC2626', '#B91C1C', '#EA580C', '#C2410C', '#F97316', '#D97706',
+        // Ambers & yellows
+        '#B45309', '#92400E', '#CA8A04', '#A16207', '#D4A017', '#C27803',
+        // Greens & teals
+        '#059669', '#047857', '#16A34A', '#15803D', '#0D9488', '#0F766E',
+      ];
+
+      let selectedBannerIcon = 'campaign';
+
+      function buildIconPicker() {
+        const dropdown = document.getElementById('icon-picker-dropdown');
+        BANNER_ICONS.forEach(name => {
+          const btn = document.createElement('button');
+          btn.className = 'icon-picker-btn' + (name === selectedBannerIcon ? ' selected' : '');
+          btn.title = name.replace(/_/g, ' ');
+          btn.innerHTML = `<span class="material-icons">${name}</span>`;
+          btn.addEventListener('click', () => selectBannerIcon(name));
+          dropdown.appendChild(btn);
+        });
+      }
+
+      function toggleIconPicker(e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById('icon-picker-dropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'grid' : 'none';
+      }
+
+      function selectBannerIcon(name) {
+        selectedBannerIcon = name;
+        document.getElementById('icon-picker-preview').textContent = name;
+        document.querySelectorAll('.icon-picker-btn').forEach(btn => {
+          btn.classList.toggle('selected', btn.title === name.replace(/_/g, ' '));
+        });
+        document.getElementById('icon-picker-dropdown').style.display = 'none';
+      }
+
+      function randomBanner() {
+        const color = pick(BANNER_COLORS);
+        const iconName = pick(BANNER_ICONS);
+        document.getElementById('debug-banner-color').value = color;
+        selectBannerIcon(iconName);
+        const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
+        spawnBanner({ color, iconHtml: `<span class="material-icons">${iconName}</span>`, desc, action, dismissible });
+      }
+
+      document.addEventListener('click', () => {
+        const dropdown = document.getElementById('icon-picker-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
+      });
+
       let selectedComponent = 'notif';
       function setComponent(component, btn) {
         selectedComponent = component;
         document.querySelectorAll('.debug-pill .debug-btn').forEach(b => b.classList.remove('debug-pill-active'));
         btn.classList.add('debug-pill-active');
+        document.getElementById('debug-notif-controls').style.display = component === 'notif' ? 'contents' : 'none';
+        document.getElementById('debug-banner-controls').style.display = component === 'banner' ? 'contents' : 'none';
+        document.getElementById('debug-timer-wrap').style.display = component === 'notif' ? 'contents' : 'none';
       }
       function spawnSelected(type) {
-        if (selectedComponent === 'notif') spawnNotif(type);
-        else spawnBanner(type);
+        if (selectedComponent === 'notif') {
+          spawnNotif(type);
+        } else {
+          const color = document.getElementById('debug-banner-color').value;
+          const iconHtml = `<span class="material-icons">${selectedBannerIcon}</span>`;
+          const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
+          spawnBanner({ color, iconHtml, desc, action, dismissible });
+        }
       }
+
+      buildIconPicker();
 
       let debugAutoDismiss = false;
       function toggleAutoDismiss() {
