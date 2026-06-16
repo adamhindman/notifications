@@ -897,9 +897,8 @@ body {
 .debug-pill .debug-pill-active { opacity: 1; background: rgba(255,255,255,0.12); }
 
 .debug-panel-right {
-  left: 20px;
-  right: auto;
-  bottom: 64px;
+  left: auto;
+  right: 20px;
 }
 
 .debug-select {
