@@ -283,6 +283,7 @@
       });
 
       let selectedComponent = 'notif';
+      let noticeSpawnedOnce = false;
       function setComponent(component, btn) {
         selectedComponent = component;
         document.querySelectorAll('.debug-pill .debug-btn').forEach(b => b.classList.remove('debug-pill-active'));
@@ -301,12 +302,12 @@
           const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
           spawnBanner({ color, iconHtml, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
         } else if (selectedComponent === 'notice') {
-          spawnNotice(pick(NOTICE_CONTENT));
+          spawnNotice(noticeSpawnedOnce ? pick(NOTICE_CONTENT) : NOTICE_CONTENT.find(e => e.heading === 'Cookie preferences'));
+          noticeSpawnedOnce = true;
         }
       }
 
       buildIconPicker();
-      spawnNotice(NOTICE_CONTENT.find(e => e.heading === 'Cookie preferences'));
 
       let debugAutoDismiss = false;
       function toggleAutoDismiss() {

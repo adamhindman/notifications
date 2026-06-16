@@ -74,8 +74,6 @@ Notice stack is positioned at `bottom: 76px` (not `20px`) to clear the debug pan
 
 The `#notice-stack` itself has `pointer-events: none` so clicks pass through the empty container area; individual `.notice` cards restore `pointer-events: all`.
 
-**Default on load:** `spawnNotice` is called once after `buildIconPicker()` with the Cookie preferences entry from `NOTICE_CONTENT`.
-
 ---
 
 ## Notification types

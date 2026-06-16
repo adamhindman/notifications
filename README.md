@@ -35,7 +35,6 @@ Floats above the page content at the bottom center, always showing exactly one a
 - **Optional icon** — Material Icon in the accent color
 - **Up to three action buttons** — first renders as a filled primary button, rest as outlined
 - **Optionally non-dismissable** — entries like session expiry have no close button
-- **Default on load** — the cookie preferences notice appears automatically
 
 ## Debug panel
 
