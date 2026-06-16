@@ -717,7 +717,7 @@ body {
 /* ── Notices ── */
 #notice-stack {
   position: fixed;
-  bottom: 76px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 999;
@@ -841,7 +841,7 @@ body {
 /* ── Debug panel ── */
 .debug-panel {
   position: fixed;
-  bottom: 20px;
+  bottom: 10px;
   left: 20px;
   z-index: 1000;
   display: flex;
@@ -852,6 +852,13 @@ body {
   border-radius: 10px;
   padding: 8px 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.debug-panel-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
 }
 
 .debug-label {
@@ -890,8 +897,9 @@ body {
 .debug-pill .debug-pill-active { opacity: 1; background: rgba(255,255,255,0.12); }
 
 .debug-panel-right {
-  left: auto;
-  right: 20px;
+  left: 20px;
+  right: auto;
+  bottom: 64px;
 }
 
 .debug-select {

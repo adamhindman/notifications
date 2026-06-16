@@ -57,7 +57,7 @@ Adjacent banners: `.banner + .banner` gets `border-top: 1px solid rgba(0,0,0,0.0
 Newest notification is always at top (`prepend()` into `#notif-stack`).
 
 ```
-#notice-stack               — position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); width: min(960px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: stretch; pointer-events: none
+#notice-stack               — position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: min(960px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: stretch; pointer-events: none
   .notice                   — display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-bottom: 10px; background: #fff; border: 1px solid rgba(0,0,0,0.09); border-radius: 8px; box-shadow: ...; pointer-events: all
     .notice-icon?           — flex-shrink: 0; color: #395979; .material-icons: font-size 20px
     .notice-body            — flex: 1; min-width: 0

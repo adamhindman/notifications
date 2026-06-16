@@ -329,6 +329,7 @@
 
       buildIconPicker();
 
+
       let debugAutoDismiss = false;
       function toggleAutoDismiss() {
         debugAutoDismiss = !debugAutoDismiss;
@@ -829,6 +830,12 @@
       }
 
       switchPortal(document.getElementById('portal-select').value);
+
+      const debugPanels = document.querySelectorAll('.debug-panel');
+      document.addEventListener('mousemove', (e) => {
+        const inTopHalf = e.clientY < window.innerHeight * 0.75;
+        debugPanels.forEach(p => p.classList.toggle('debug-panel-hidden', inTopHalf));
+      });
     </script>
   </body>
 </html>
