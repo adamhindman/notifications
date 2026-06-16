@@ -15,11 +15,15 @@
     <!-- ── Notification stack (dynamically populated) ── -->
     <div class="notif-stack" id="notif-stack"></div>
 
+    <!-- ── Notice stack (dynamically populated) ── -->
+    <div id="notice-stack"></div>
+
     <!-- ── Debug panel ── -->
     <div class="debug-panel">
       <div class="debug-pill">
-        <button class="debug-btn debug-random debug-pill-active" onclick="setComponent('notif',   this)">Notif</button>
-        <button class="debug-btn debug-random"                   onclick="setComponent('banner', this)">Banner</button>
+        <button class="debug-btn debug-random debug-pill-active" onclick="setComponent('notif',    this)">Notif</button>
+        <button class="debug-btn debug-random"                   onclick="setComponent('banner',  this)">Banner</button>
+        <button class="debug-btn debug-random"                   onclick="setComponent('notice', this)">Notice</button>
       </div>
       <div class="debug-divider"></div>
       <div id="debug-notif-controls" style="display:contents">
@@ -41,6 +45,9 @@
         <button class="debug-btn debug-random" onclick="spawnSelected()">Spawn</button>
         <div class="debug-divider"></div>
         <button class="debug-btn debug-random" onclick="randomBanner()">Random</button>
+      </div>
+      <div id="debug-notice-controls" style="display:none">
+        <button class="debug-btn debug-random" onclick="spawnSelected()">Spawn</button>
       </div>
       <div id="debug-timer-wrap" style="display:contents">
         <div class="debug-divider"></div>
@@ -117,6 +124,19 @@
         { key: 'maintenance-window', desc: 'Synapse will be in read-only mode on Saturday, June 21 from 10 PM – 2 AM UTC for infrastructure upgrades.', action: 'View schedule' },
       ];
 
+      const NOTICE_CONTENT = [
+        { heading: 'Help us improve Synapse', desc: 'Take our 5-minute survey on data discovery and reuse. Your input directly shapes our roadmap.', actions: ['Take survey'], icon: 'campaign' },
+        { heading: 'Your privacy rights', desc: 'Under GDPR, you have the right to access, update, or delete your personal data at any time.', actions: ['Manage data'], icon: 'policy' },
+        { heading: 'Cookie preferences', desc: 'We use cookies to improve your experience and analyze platform usage. You can customize your preferences.', actions: ['Accept all', 'Customize'], icon: 'security' },
+        { heading: 'New to Synapse?', desc: 'Take a guided tour to learn how to upload data, manage permissions, and collaborate with your team.', actions: ['Start tour'], icon: 'explore' },
+        { heading: 'Keyboard shortcut tip', desc: 'Press ? at any time to open the keyboard shortcut reference for this page.', icon: 'auto_awesome' },
+        { heading: 'Session expiring soon', desc: 'Your session will expire in 5 minutes due to inactivity. Any unsaved changes will be lost.', actions: ['Extend session'], icon: 'schedule', dismissible: false },
+        { heading: 'Terms of service updated', desc: 'We\'ve updated our terms of service. Please review the changes before your next data submission.', actions: ['Review terms'], icon: 'new_releases', dismissible: false },
+        { heading: 'Export ready to download', desc: 'Your data export has been prepared and is ready. The file will be available for 48 hours before it expires.', actions: ['Download'], icon: 'cloud_done' },
+        { heading: 'Tip: bulk annotation editing', desc: 'Select multiple rows and press E to edit annotations in bulk across your entire selection at once.' },
+        { heading: 'Connect with the community', desc: 'Join over 50,000 researchers on the Synapse forum. Ask questions, share discoveries, and collaborate.', actions: ['Visit forum'], icon: 'groups' },
+      ];
+
       function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
       function dismissBanner(el) {
@@ -133,6 +153,49 @@
         el.style.paddingBottom = '0';
         el.style.opacity = '0';
         el.addEventListener('transitionend', () => el.remove(), { once: true });
+      }
+
+      function dismissNotice(el) {
+        if (el.classList.contains('notice-dismissing')) return;
+        el.classList.add('notice-dismissing');
+        el.addEventListener('animationend', () => {
+          const cs = getComputedStyle(el);
+          el.style.height = el.offsetHeight + 'px';
+          el.style.paddingTop = cs.paddingTop;
+          el.style.paddingBottom = cs.paddingBottom;
+          el.style.marginBottom = cs.marginBottom;
+          el.offsetHeight; // force reflow
+          el.style.transition = 'height 0.2s ease, padding-top 0.2s ease, padding-bottom 0.2s ease, margin-bottom 0.2s ease';
+          el.style.height = '0';
+          el.style.paddingTop = '0';
+          el.style.paddingBottom = '0';
+          el.style.marginBottom = '0';
+          el.addEventListener('transitionend', () => el.remove(), { once: true });
+        }, { once: true });
+      }
+
+      function spawnNotice({ heading, desc, actions = [], icon, dismissible = true }) {
+        const existing = document.querySelector('#notice-stack .notice:not(.notice-dismissing)');
+        if (existing) dismissNotice(existing);
+        const el = document.createElement('div');
+        el.className = 'notice';
+        const actionBtns = actions.map((label, i) =>
+          `<button class="notice-action-btn${i === 0 ? ' notice-action-primary' : ''}">${label}</button>`
+        ).join('');
+        el.innerHTML = `
+          ${icon ? `<div class="notice-icon"><span class="material-icons">${icon}</span></div>` : ''}
+          <div class="notice-body">
+            ${heading ? `<div class="notice-heading">${heading}</div>` : ''}
+            ${desc ? `<p class="notice-desc">${desc}</p>` : ''}
+          </div>
+          ${actions.length ? `<div class="notice-actions">${actionBtns}</div>` : ''}
+          ${dismissible ? `<button class="notice-close" aria-label="Close">${CLOSE_SVG}</button>` : ''}`;
+        if (dismissible) el.querySelector('.notice-close').addEventListener('click', () => dismissNotice(el));
+        document.getElementById('notice-stack').appendChild(el);
+      }
+
+      function randomNotice() {
+        spawnNotice(pick(NOTICE_CONTENT));
       }
 
       function spawnBanner({ color, iconHtml, desc, action, dismissible = true }) {
@@ -224,22 +287,26 @@
         selectedComponent = component;
         document.querySelectorAll('.debug-pill .debug-btn').forEach(b => b.classList.remove('debug-pill-active'));
         btn.classList.add('debug-pill-active');
-        document.getElementById('debug-notif-controls').style.display = component === 'notif' ? 'contents' : 'none';
-        document.getElementById('debug-banner-controls').style.display = component === 'banner' ? 'contents' : 'none';
-        document.getElementById('debug-timer-wrap').style.display = component === 'notif' ? 'contents' : 'none';
+        document.getElementById('debug-notif-controls').style.display  = component === 'notif'    ? 'contents' : 'none';
+        document.getElementById('debug-banner-controls').style.display  = component === 'banner'   ? 'contents' : 'none';
+        document.getElementById('debug-notice-controls').style.display = component === 'notice'  ? 'contents' : 'none';
+        document.getElementById('debug-timer-wrap').style.display       = component === 'notif'    ? 'contents' : 'none';
       }
       function spawnSelected(type) {
         if (selectedComponent === 'notif') {
           spawnNotif(type);
-        } else {
+        } else if (selectedComponent === 'banner') {
           const color = document.getElementById('debug-banner-color').value;
           const iconHtml = `<span class="material-icons">${selectedBannerIcon}</span>`;
           const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
           spawnBanner({ color, iconHtml, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
+        } else if (selectedComponent === 'notice') {
+          spawnNotice(pick(NOTICE_CONTENT));
         }
       }
 
       buildIconPicker();
+      spawnNotice(NOTICE_CONTENT.find(e => e.heading === 'Cookie preferences'));
 
       let debugAutoDismiss = false;
       function toggleAutoDismiss() {

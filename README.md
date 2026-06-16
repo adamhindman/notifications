@@ -2,7 +2,7 @@
 
 **Live demo:** https://adamhindman.github.io/notifications/
 
-A prototype covering two in-app alert patterns — popup notifications and full-width page banners — built with vanilla JavaScript and Vite on a mock Synapse project page.
+A prototype covering three in-app alert patterns — popup notifications, full-width page banners, and a bottom-center notice — built with vanilla JavaScript and Vite on a mock Synapse project page.
 
 ## Popup notifications
 
@@ -26,9 +26,20 @@ Appear at the top of the page, push content down, and scroll away with the page.
 - **Optionally non-dismissable** — some banners have no close button; they can only be removed when the underlying condition resolves
 - **Optional action button** — an outlined pill CTA; shown on a random subset of banners
 
+## Bottom notice
+
+Floats above the page content at the bottom center, always showing exactly one at a time.
+
+- **Singleton** — spawning a new notice dismisses the current one first
+- **White card** — solid white background with shadow; accent color `#395979` for icons and buttons
+- **Optional icon** — Material Icon in the accent color
+- **Up to three action buttons** — first renders as a filled primary button, rest as outlined
+- **Optionally non-dismissable** — entries like session expiry have no close button
+- **Default on load** — the cookie preferences notice appears automatically
+
 ## Debug panel
 
-A fixed panel at the bottom-left lets you spawn either component.
+A fixed panel at the bottom-left lets you spawn any of the three components.
 
 **Notif mode:**
 - **Error / Warning / Info / Success / Random** — spawns a notification of that type
@@ -40,7 +51,10 @@ A fixed panel at the bottom-left lets you spawn either component.
 - **Spawn** — spawns a banner with the current color and icon
 - **Random** — picks a random color from 36 curated options, a random icon, and random announcement text
 
-A **Preview panel** at the bottom-right swaps the page content with a screenshot of a selected Sage portal, for testing banners in context across different products.
+**Notice mode:**
+- **Spawn** — dismisses the current notice and spawns a random one
+
+A **Preview panel** at the bottom-right swaps the page content with a screenshot of a selected Sage portal, for testing components in context across different products.
 
 ## Getting Started
 

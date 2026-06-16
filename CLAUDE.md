@@ -21,7 +21,7 @@ These are non-obvious decisions that will produce subtle bugs if changed:
 
 ## DOM structure
 
-Two independent stacks. Banners are in normal document flow (push content down, scroll away). Notifications are a fixed overlay.
+Three independent components. Banners are in normal document flow (push content down, scroll away). Notifications and Notices are fixed overlays.
 
 ```
 #banner-stack              — display: flex; flex-direction: column  [no positioning — document flow]
@@ -54,6 +54,27 @@ Adjacent banners: `.banner + .banner` gets `border-top: 1px solid rgba(0,0,0,0.0
 ```
 
 Newest notification is always at top (`prepend()` into `#notif-stack`).
+
+```
+#notice-stack               — position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); width: min(960px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: stretch; pointer-events: none
+  .notice                   — display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-bottom: 10px; background: #fff; border: 1px solid rgba(0,0,0,0.09); border-radius: 8px; box-shadow: ...; pointer-events: all
+    .notice-icon?           — flex-shrink: 0; color: #395979; .material-icons: font-size 20px
+    .notice-body            — flex: 1; min-width: 0
+      .notice-heading?      — font-size: 14px; font-weight: 700; color: #1c1f26; margin-bottom: 2px
+      .notice-desc?         — font-size: 13.5px; color: #3d4455; line-height: 1.45
+    .notice-actions?        — display: flex; align-items: center; gap: 8px; flex-shrink: 0
+      button.notice-action-btn.notice-action-primary  [first button: background #395979, color #fff]
+      button.notice-action-btn                        [subsequent: outlined, color #395979]
+    .notice-close?          — borderless X at 30% opacity [omitted if dismissible: false]
+```
+
+**Notice is a singleton** — `spawnNotice` calls `dismissNotice` on any existing notice before appending the new one. `#notice-stack .notice:not(.notice-dismissing)` is the guard query.
+
+Notice stack is positioned at `bottom: 76px` (not `20px`) to clear the debug panel which sits at `bottom: 20px`.
+
+The `#notice-stack` itself has `pointer-events: none` so clicks pass through the empty container area; individual `.notice` cards restore `pointer-events: all`.
+
+**Default on load:** `spawnNotice` is called once after `buildIconPicker()` with the Cookie preferences entry from `NOTICE_CONTENT`.
 
 ---
 
@@ -93,6 +114,22 @@ Policy for reference:
 
 ---
 
+## Notice content
+
+`NOTICE_CONTENT` is a flat array of objects: `{ heading, desc, actions?, icon?, dismissible? }`.
+
+- `heading` — bold title line (14px 700)
+- `desc` — body text (13.5px)
+- `actions` — optional array of 1–3 button labels; first renders as filled primary (`#395979`), rest as outlined
+- `icon` — optional Material Icons name; renders in `#395979`
+- `dismissible` — defaults to `true`; when `false`, no close button
+
+Non-dismissable entries: `Session expiring soon`, `Terms of service updated`.
+
+The debug Spawn button picks randomly from `NOTICE_CONTENT` via `pick()`.
+
+---
+
 ## Banner content
 
 `BANNER_CONTENT` is a **flat array** of objects: `{ key, desc, action?, dismissible? }`. Banners are general-purpose — no types.
@@ -103,6 +140,27 @@ Policy for reference:
 Non-dismissable entries: `quota-exceeded`, `policy-update`.
 
 Banners have no `autoDismiss` — they are always persistent.
+
+---
+
+## `spawnNotice({ heading, desc, actions, icon, dismissible })`
+
+1. Dismiss any existing non-dismissing notice via `dismissNotice`.
+2. Create `.notice`; build `actionBtns` HTML (first gets `.notice-action-primary`).
+3. Set `innerHTML` with optional icon, body (heading + desc), optional actions, optional close button.
+4. If `dismissible`, wire close button to `dismissNotice(el)`.
+5. `appendChild` into `#notice-stack`.
+
+---
+
+## `dismissNotice(el)`
+
+Guard: `if (el.classList.contains('notice-dismissing')) return`.
+
+**Phase 1 — slide down:**
+Add `.notice-dismissing` → `@keyframes notice-out` (`to: translateY(calc(100% + 20px)), opacity: 0`; `0.2s ease-in forwards`). Also sets `pointer-events: none; overflow: hidden`.
+
+**Phase 2 — height collapse** (on `animationend`, `{ once: true }`): identical pattern to `dismissNotif` — lock height + padding + marginBottom as inline styles, force reflow, transition all to 0, remove on `transitionend`.
 
 ---
 
@@ -288,6 +346,8 @@ All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, 
 | Badge pulse | 0.25s | `ease-out` | `notif-badge-pulse`: `scale(1)→scale(1.4)→scale(1)` |
 | Banner entry | 0.25s | `ease-out` | `banner-in`: `translateY(-6px)→0`, opacity `0→1` |
 | Banner dismiss | 0.2s / 0.15s | `ease` / `ease` | JS transition: height + padding → 0 (0.2s), opacity → 0 (0.15s) |
+| Notice entry | 0.3s | `cubic-bezier(0.22, 1, 0.36, 1)` | `notice-in`: `translateY(12px)→0`, opacity `0→1` |
+| Notice exit | 0.2s / 0.2s | `ease-in` / `ease` | `notice-out`: `→translateY(calc(100%+20px))`, opacity `→0`; then height collapse |
 
 ---
 
@@ -301,7 +361,7 @@ All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, 
 
 ## Debug panel
 
-Fixed, `bottom: 20px; left: 20px`. Two modes controlled by the **Notif | Banner** pill.
+Fixed, `bottom: 20px; left: 20px`. Three modes controlled by the **Notif | Banner | Notice** pill.
 
 ### Notif mode
 - **Error / Warning / Info / Success / Random** — spawns immediately via `spawnNotif(type)`
@@ -313,7 +373,10 @@ Fixed, `bottom: 20px; left: 20px`. Two modes controlled by the **Notif | Banner*
 - **Spawn** — spawns a banner with the current color + icon + random content entry
 - **Random** — picks a random color from `BANNER_COLORS` (36 curated), a random icon from `BANNER_ICONS` (23), and random content; syncs the color picker and icon picker UI
 
-Timer toggle is hidden in Banner mode (`#debug-timer-wrap` set to `display:none`).
+### Notice mode
+- **Spawn** — dismisses the current notice (if any) and spawns a new random one from `NOTICE_CONTENT`
+
+Timer toggle is hidden in Banner and Notice modes (`#debug-timer-wrap` set to `display:none`).
 
 Dividers (`.debug-divider`, 1px, `rgba(255,255,255,0.15)`) separate sections.
 
@@ -326,3 +389,4 @@ Fixed, `bottom: 20px; right: 20px`. Dropdown swaps the `.shell` page content wit
 
 - Stacking limit (no cap on simultaneous notifications or banners)
 - Accessibility (ARIA live region, focus management)
+- Notice: no swipe-to-dismiss, no auto-dismiss
