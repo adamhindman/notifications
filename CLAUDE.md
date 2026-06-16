@@ -14,6 +14,8 @@ These are non-obvious decisions that will produce subtle bugs if changed:
 4. **Height collapse requires a forced reflow before the transition** — after locking computed values as inline styles, read `el.offsetHeight` to force the browser to register them before the transition target values are set. Without this, the browser batches the assignments and skips the animation.
 5. **Coalesce query uses `:not(.notif-dismissing)`** — must not coalesce into a card that is already animating out.
 6. **`animationPlayState` and `setTimeout` are paused/resumed together** — setting both at the same moment is what keeps the CSS progress bar in sync with the JS timer.
+7. **Banner icon uses `currentColor` + CSS filter for color** — the icon element has `color: var(--banner-color)` set on `.banner-icon`; SVG paths use `fill="currentColor"` and Material Icons inherit `color`. The `filter: brightness(0.65) saturate(1.3)` on `.banner-icon` darkens both consistently. Do not hardcode fill colors on banner icons.
+8. **`--banner-color-dark` is computed via `color-mix` on the element** — declared inside `.banner { }` so it resolves against the inline `--banner-color` set per instance. Moving it to `:root` would break it.
 
 ---
 
@@ -23,16 +25,19 @@ Two independent stacks. Banners are in normal document flow (push content down, 
 
 ```
 #banner-stack              — display: flex; flex-direction: column  [no positioning — document flow]
-  .banner                  — display: flex; align-items: center; gap: 16px; padding: 11px 20px; background: #1c1f26; border-left: 4px solid var(--banner-color); --banner-color: <type color>
-    .banner-icon           — flex-shrink: 0; display: flex; align-items: center
+  .banner                  — display: flex; align-items: center; gap: 16px; padding: 11px 20px;
+                             --banner-color: <hex>; --banner-color-dark: color-mix(in srgb, var(--banner-color) 70%, #000);
+                             background: radial-gradient(ellipse 160% 500% at -10% -150%, <pastel 42%> 0%, <pastel 8%> 65%)
+    .banner-icon           — flex-shrink: 0; display: flex; align-items: center; color: var(--banner-color); filter: brightness(0.65) saturate(1.3)
+                               svg: width/height 20px; .material-icons: font-size 20px
     .banner-body           — flex: 1; min-width: 0
-      .banner-desc         — font-size: 13.5px; color: #c8cdd6; line-height: 1.45
+      .banner-desc         — font-size: 13.5px; color: #3d4455; line-height: 1.45
     .banner-actions        — display: flex; align-items: center; gap: 20px; flex-shrink: 0
-      button.banner-action-btn?  [omitted if no entry.action]
-      button.banner-close?       [omitted if dismissible: false]
+      button.banner-action-btn?  [omitted ~72% of the time; outlined pill, color: var(--banner-color-dark)]
+      button.banner-close?       [omitted if dismissible: false; borderless X at 30% opacity]
 ```
 
-Adjacent banners: `.banner + .banner` gets `border-top: 1px solid rgba(255,255,255,0.06)`.
+Adjacent banners: `.banner + .banner` gets `border-top: 1px solid rgba(0,0,0,0.08)`.
 
 ```
 #notif-stack                — position: fixed; top: 20px; right: 20px; min-width: 480px; max-width: 720px; display: flex; flex-direction: column
@@ -65,7 +70,7 @@ Icon color is the only visual type indicator; card background is always `#1c1f26
 
 ---
 
-## Content and keys
+## Notification content and keys
 
 `CONTENT[type]` is an array of objects: `{ key, heading, desc, autoDismiss, actions? }`.
 
@@ -90,10 +95,10 @@ Policy for reference:
 
 ## Banner content
 
-`BANNER_CONTENT[type]` is an array of objects: `{ key, desc, action?, dismissible? }`.
+`BANNER_CONTENT` is a **flat array** of objects: `{ key, desc, action?, dismissible? }`. Banners are general-purpose — no types.
 
-- `action` — optional button label string; omitted for banners with no CTA
-- `dismissible` — defaults to `true`; when `false`, no close button is rendered and the user cannot dismiss the banner (only the system can remove it when the condition resolves)
+- `action` — optional button label string; present in most entries but shown only ~28% of the time (random roll at spawn)
+- `dismissible` — defaults to `true`; when `false`, no close button is rendered
 
 Non-dismissable entries: `quota-exceeded`, `policy-update`.
 
@@ -101,14 +106,14 @@ Banners have no `autoDismiss` — they are always persistent.
 
 ---
 
-## `spawnBanner(type)`
+## `spawnBanner({ color, iconHtml, desc, action, dismissible })`
 
-1. If `type === 'random'`, resolve to a real type via `pick(TYPES)`.
-2. Pick a random entry; destructure `{ key, desc, action, dismissible = true }`.
-3. Create `.banner`; set `data-banner-key`, `--banner-color`.
-4. Set `innerHTML`: icon, body (`banner-desc`), actions (conditionally include `banner-action-btn` and `banner-close`).
-5. If `dismissible`, wire close button to `dismissBanner(el)`.
-6. `appendChild` into `#banner-stack`.
+1. Create `.banner`; set `--banner-color` to `color`.
+2. Set `innerHTML`: `iconHtml` into `.banner-icon`, desc into `.banner-desc`, conditionally `banner-action-btn` and `banner-close`.
+3. If `dismissible`, wire close button to `dismissBanner(el)`.
+4. `appendChild` into `#banner-stack`.
+
+`iconHtml` is a raw HTML string — either a `<span class="material-icons">name</span>` or an SVG with `fill="currentColor"`. The `.banner-icon` CSS filter handles darkening.
 
 ---
 
@@ -290,22 +295,34 @@ All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, 
 
 - **≤ 600px**: `.notif-stack` — `left: 12px; right: 12px; min-width: unset; max-width: unset`
 - **≤ 480px**: `.notif` — `flex-wrap: wrap`; `.notif-actions` — `width: 100%; margin-left: calc(24px + 24px)` (aligns under body text)
+- **≤ 480px**: `.banner` — `flex-wrap: wrap`; `.banner-actions` — `width: 100%; margin-left: calc(24px + 16px)`
 
 ---
 
 ## Debug panel
 
-Fixed, `bottom: 20px; left: 76px`. Controls:
+Fixed, `bottom: 20px; left: 20px`. Two modes controlled by the **Notif | Banner** pill.
 
-- **Notif | Banner pill** — selects which component to spawn (`selectedComponent`); active side is full opacity with `rgba(255,255,255,0.12)` background, inactive side dimmed to 0.4 opacity. Default: Notif.
-- **Error / Warning / Info / Success / Random** — spawns immediately using `spawnSelected(type)`, which delegates to `spawnNotif` or `spawnBanner` based on `selectedComponent`.
-- **Timer toggle** — clock icon (`#debug-timer-toggle`); toggles `debugAutoDismiss`. Only affects notifications — banners are always persistent and have no auto-dismiss logic. Default: off.
+### Notif mode
+- **Error / Warning / Info / Success / Random** — spawns immediately via `spawnNotif(type)`
+- **Timer toggle** — clock icon (`#debug-timer-toggle`); toggles `debugAutoDismiss`. Default: off.
 
-Dividers (`.debug-divider`, 1px, `rgba(255,255,255,0.15)`) separate the pill, type buttons, and timer toggle.
+### Banner mode
+- **Color picker** (`<input type="color">`, default `#017FA5`) — sets `--banner-color` on the spawned banner
+- **Icon picker** — custom popover grid of 23 Material Icons (4-column); clicking an icon selects it and updates the trigger preview. Opens/closes via `toggleIconPicker(e)` with `e.stopPropagation()` to prevent immediate close from the document-level outside-click listener.
+- **Spawn** — spawns a banner with the current color + icon + random content entry
+- **Random** — picks a random color from `BANNER_COLORS` (36 curated), a random icon from `BANNER_ICONS` (23), and random content; syncs the color picker and icon picker UI
+
+Timer toggle is hidden in Banner mode (`#debug-timer-wrap` set to `display:none`).
+
+Dividers (`.debug-divider`, 1px, `rgba(255,255,255,0.15)`) separate sections.
+
+### Portal preview panel
+Fixed, `bottom: 20px; right: 20px`. Dropdown swaps the `.shell` page content with a full-width `<img>` screenshot. Options: Curator (default, shows `.shell`), NF Portal, AD Knowledge Portal, ELITE Portal, Sage Homepage. Screenshots are in `public/screenshots/`. Initialized on load to sync with browser-restored select state.
 
 ---
 
 ## Not yet implemented
 
-- Stacking limit (no cap on simultaneous notifications)
+- Stacking limit (no cap on simultaneous notifications or banners)
 - Accessibility (ARIA live region, focus management)

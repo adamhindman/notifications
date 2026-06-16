@@ -20,18 +20,27 @@ Appear as cards in the top-right corner, stacking newest-on-top.
 
 Appear at the top of the page, push content down, and scroll away with the page.
 
-- **Same four types** with matching icons and colors
+- **General-purpose** — not type-based; each banner takes an arbitrary color and a Material Icon
+- **Radial gradient background** — pastel wash derived from the banner color, fading from the upper-left
 - **Always persistent** — no auto-dismiss
-- **Optionally non-dismissable** — some banners (e.g. quota exceeded, policy update) have no close button; they can only be removed when the underlying condition resolves
-- **Optional action button** — banners can include a single CTA
+- **Optionally non-dismissable** — some banners have no close button; they can only be removed when the underlying condition resolves
+- **Optional action button** — an outlined pill CTA; shown on a random subset of banners
 
 ## Debug panel
 
-A fixed panel at the bottom-left lets you spawn either component in any of the four types:
+A fixed panel at the bottom-left lets you spawn either component.
 
-- **Notif / Banner pill** — selects which component to target
-- **Error / Warning / Info / Success / Random** — spawns immediately using the selected component
-- **Timer toggle** (clock icon) — forces auto-dismiss on all notifications; has no effect on banners
+**Notif mode:**
+- **Error / Warning / Info / Success / Random** — spawns a notification of that type
+- **Timer toggle** (clock icon) — forces auto-dismiss on all notifications
+
+**Banner mode:**
+- **Color picker** — choose any color; the gradient and icon adapt automatically
+- **Icon picker** — popover grid of 23 Material Icons
+- **Spawn** — spawns a banner with the current color and icon
+- **Random** — picks a random color from 36 curated options, a random icon, and random announcement text
+
+A **Preview panel** at the bottom-right swaps the page content with a screenshot of a selected Sage portal, for testing banners in context across different products.
 
 ## Getting Started
 

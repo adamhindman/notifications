@@ -17,7 +17,7 @@
   gap: 16px;
   padding: 11px 20px;
   --banner-color-dark: color-mix(in srgb, var(--banner-color) 70%, #000);
-  background: radial-gradient(ellipse 160% 500% at -10% -150%, color-mix(in srgb, var(--banner-color) 22%, #fff) 0%, color-mix(in srgb, var(--banner-color) 8%, #fff) 65%);
+  background: radial-gradient(ellipse 160% 500% at -10% -150%, color-mix(in srgb, var(--banner-color) 42%, #fff) 0%, color-mix(in srgb, var(--banner-color) 8%, #fff) 65%);
   color: #1c1f26;
   animation: banner-in 0.25s ease-out;
 }
@@ -74,13 +74,15 @@
 
 .banner-action-btn {
   background: none;
-  border: none;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
   cursor: pointer;
-  color: #1c1f26;
-  font-size: 13.5px;
-  font-weight: 700;
+  color: var(--banner-color-dark);
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
-  padding: 0;
+  padding: 3px 10px;
+  transition: opacity 0.15s;
 }
 .banner-action-btn:hover { opacity: 0.7; }
 
@@ -88,17 +90,18 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1.5px solid rgba(0,0,0,0.2);
+  border: none;
   background: transparent;
   cursor: pointer;
   color: #1c1f26;
+  opacity: 0.3;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: border-color 0.15s, background 0.15s;
+  transition: opacity 0.15s, background 0.15s;
 }
-.banner-close:hover { border-color: #1c1f26; background: rgba(0,0,0,0.06); }
+.banner-close:hover { opacity: 1; background: rgba(0,0,0,0.07); }
 
 /* ── Notifications ── */
 .notif-stack {

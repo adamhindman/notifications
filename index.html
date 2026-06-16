@@ -38,9 +38,9 @@
           </button>
           <div class="icon-picker-dropdown" id="icon-picker-dropdown" style="display:none"></div>
         </div>
-        <button class="debug-btn debug-random" onclick="randomBanner()">Random</button>
-        <div class="debug-divider"></div>
         <button class="debug-btn debug-random" onclick="spawnSelected()">Spawn</button>
+        <div class="debug-divider"></div>
+        <button class="debug-btn debug-random" onclick="randomBanner()">Random</button>
       </div>
       <div id="debug-timer-wrap" style="display:contents">
         <div class="debug-divider"></div>
@@ -211,7 +211,7 @@
         document.getElementById('debug-banner-color').value = color;
         selectBannerIcon(iconName);
         const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
-        spawnBanner({ color, iconHtml: `<span class="material-icons">${iconName}</span>`, desc, action, dismissible });
+        spawnBanner({ color, iconHtml: `<span class="material-icons">${iconName}</span>`, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
       }
 
       document.addEventListener('click', () => {
@@ -235,7 +235,7 @@
           const color = document.getElementById('debug-banner-color').value;
           const iconHtml = `<span class="material-icons">${selectedBannerIcon}</span>`;
           const { desc, action, dismissible = true } = pick(BANNER_CONTENT);
-          spawnBanner({ color, iconHtml, desc, action, dismissible });
+          spawnBanner({ color, iconHtml, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
         }
       }
 
