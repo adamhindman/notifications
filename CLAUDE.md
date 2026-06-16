@@ -34,7 +34,7 @@ Three independent components. Banners are in normal document flow (push content 
       .banner-title?       — font-size: 14px; font-weight: 700; color: #1c1f26; margin: 0 0 2px  [omitted when entry has no title]
       .banner-desc         — font-size: 13.5px; color: #3d4455; line-height: 1.45; max-height: calc(1.45em * 2); overflow: hidden; position: relative
     .banner-actions        — display: flex; align-items: center; gap: 20px; flex-shrink: 0
-      button.banner-action-btn?  [omitted ~72% of the time; outlined pill, color: var(--banner-color-dark)]
+      button.banner-action-btn?  [optional; outlined pill, color: var(--banner-color-dark)]
       button.banner-close?       [omitted if dismissible: false; borderless X at 30% opacity]
 ```
 
@@ -71,96 +71,52 @@ Newest notification is always at top (`prepend()` into `#notif-stack`).
 
 **Notice is a singleton** — `spawnNotice` calls `dismissNotice` on any existing notice before appending the new one. `#notice-stack .notice:not(.notice-dismissing)` is the guard query.
 
-Notice stack is positioned at `bottom: 76px` (not `20px`) to clear the debug panel which sits at `bottom: 20px`.
-
 The `#notice-stack` itself has `pointer-events: none` so clicks pass through the empty container area; individual `.notice` cards restore `pointer-events: all`.
 
 ---
 
 ## Notification types
 
-| Type    | `--notif-color` | Icon SVG object key |
-|---------|-----------------|---------------------|
-| error   | `#F04248`       | `ICONS.error`       |
-| warning | `#FFD21E`       | `ICONS.warning`     |
-| success | `#00DF80`       | `ICONS.success`     |
-| info    | `#017FA5`       | `ICONS.info`        |
+| Type    | `--notif-color` |
+|---------|-----------------|
+| error   | `#F04248`       |
+| warning | `#FFD21E`       |
+| success | `#00DF80`       |
+| info    | `#017FA5`       |
 
-Icon color is the only visual type indicator; card background is always `#1c1f26`.
-
----
-
-## Notification content and keys
-
-`CONTENT[type]` is an array of objects: `{ key, heading, desc, autoDismiss, actions? }`.
-
-`actions` is an optional array of 1–2 button label strings. If present, those labels are used verbatim. If absent, a single label is picked at random from `ACTION_LABELS`. Entries with two buttons:
-- `upload-failed`: `['Retry', 'View error']`
-- `session-expiring`: `['Extend session', 'Log out']`
-- `export-ready`: `['Download', 'Share link']`
-- `new-version`: `['Update now', "What's new"]`
-- `collab-invite`: `['Accept', 'Decline']`
-
-`autoDismiss` is fixed per key and reflects intended production behavior, but **is not used at spawn time** — the global `debugAutoDismiss` toggle controls whether timers fire (see Debug panel). The per-key values are retained as the source-of-truth policy for when this prototype is wired to real triggers.
-
-Policy for reference:
-- **error**: all `false`
-- **warning**: all `false`
-- **success**: `true` for `changes-saved`, `upload-complete`, `analysis-finished`, `sync-complete`, `invitation-sent`; `false` for `export-ready`
-- **info**: `true` for `dataset-updated`, `tip`; `false` for `new-version`, `maintenance`, `collab-invite`
-
-`ACTION_LABELS` — 12 options, one picked at random per spawn.
+Each type has a corresponding SVG icon. Icon color is the only visual type indicator; card background is always `#1c1f26`.
 
 ---
 
-## Notice content
+## Data interfaces
 
-`NOTICE_CONTENT` is a flat array of objects: `{ heading, desc, actions?, icon?, dismissible? }`.
+### Notification entry: `{ key, heading, desc, autoDismiss, actions? }`
 
-- `heading` — bold title line (14px 700)
-- `desc` — body text (13.5px)
-- `actions` — optional array of 1–3 button labels; first renders as filled primary (`#395979`), rest as outlined
+- `key` — unique string for deduplication
+- `heading` — bold title line
+- `desc` — body text; clamped to 1 line with `… More` disclosure if it overflows
+- `autoDismiss` — boolean; when true the card self-dismisses after 5s with a countdown bar
+- `actions` — optional array of 1–2 button label strings; if absent, a single fallback label is used
+
+Error and warning notifications are never auto-dismissed. Some success and info notifications auto-dismiss.
+
+### Notice entry: `{ heading?, desc?, actions?, icon?, dismissible? }`
+
+- `heading` — optional bold title line (14px 700)
+- `desc` — optional body text (13.5px)
+- `actions` — optional array of 1–3 button labels; first renders as filled primary, rest as outlined
 - `icon` — optional Material Icons name; renders in `#395979`
 - `dismissible` — defaults to `true`; when `false`, no close button
 
-Non-dismissable entries: `Session expiring soon`, `Terms of service updated`.
+### Banner entry: `{ key, title?, desc, action?, dismissible? }`
 
-The debug Spawn button picks randomly from `NOTICE_CONTENT` via `pick()`.
-
----
-
-## Banner content
-
-`BANNER_CONTENT` is a **flat array** of objects: `{ key, title, desc, action?, dismissible? }`. Banners are general-purpose — no types.
-
-- `title` — bold heading rendered above `desc` in `.banner-title`; present on all current entries
-- `action` — optional button label string; present in most entries but shown only ~28% of the time (random roll at spawn)
+- `key` — unique string identifier
+- `title` — optional bold heading rendered above `desc` in `.banner-title`
+- `desc` — body text; clamped to 2 lines with `… More` disclosure if it overflows
+- `action` — optional button label string
 - `dismissible` — defaults to `true`; when `false`, no close button is rendered
 
-Non-dismissable entries: `quota-exceeded`, `policy-update`.
-
 Banners have no `autoDismiss` — they are always persistent.
-
----
-
-## `spawnNotice({ heading, desc, actions, icon, dismissible })`
-
-1. Dismiss any existing non-dismissing notice via `dismissNotice`.
-2. Create `.notice`; build `actionBtns` HTML (first gets `.notice-action-primary`).
-3. Set `innerHTML` with optional icon, body (heading + desc), optional actions, optional close button.
-4. If `dismissible`, wire close button to `dismissNotice(el)`.
-5. `appendChild` into `#notice-stack`.
-
----
-
-## `dismissNotice(el)`
-
-Guard: `if (el.classList.contains('notice-dismissing')) return`.
-
-**Phase 1 — slide down:**
-Add `.notice-dismissing` → `@keyframes notice-out` (`to: translateY(calc(100% + 20px)), opacity: 0`; `0.2s ease-in forwards`). Also sets `pointer-events: none; overflow: hidden`.
-
-**Phase 2 — height collapse** (on `animationend`, `{ once: true }`): identical pattern to `dismissNotif` — lock height + padding + marginBottom as inline styles, force reflow, transition all to 0, remove on `transitionend`.
 
 ---
 
@@ -170,10 +126,10 @@ Add `.notice-dismissing` → `@keyframes notice-out` (`to: translateY(calc(100% 
 2. Set `innerHTML`: `iconHtml` into `.banner-icon`; optionally `.banner-title` (omitted when `title` is falsy); desc into `.banner-desc`; conditionally `banner-action-btn` and `banner-close`.
 3. If `dismissible`, wire close button to `dismissBanner(el)`.
 4. `appendChild` into `#banner-stack`.
-5. Run truncation detection in `requestAnimationFrame` (same pattern as `spawnNotif`): if `descEl.scrollHeight > descEl.clientHeight`, add `.banner-expandable` to the card and wire a click handler on `.banner-body` to toggle `.banner-desc-expanded` on the desc element.
+5. Run truncation detection in `requestAnimationFrame`: if `descEl.scrollHeight > descEl.clientHeight`, add `.banner-expandable` to the card and wire a click handler on `.banner-body` to toggle `.banner-desc-expanded` on the desc element.
 
 Truncation CSS:
-- `.banner-desc` — `max-height: calc(1.45em * 2)` (3-line clamp, same `max-height` rationale as `.notif-desc`)
+- `.banner-desc` — `max-height: calc(1.45em * 2)` (same `max-height` rationale as `.notif-desc`)
 - `.banner-expandable .banner-body` — `cursor: pointer`
 - `.banner-expandable .banner-desc:not(.banner-desc-expanded)::after` — renders `… More`; gradient uses `color-mix(in srgb, var(--banner-color) 8%, #fff)` to match the right-edge banner background
 - `.banner-desc-expanded` — `max-height: none; overflow: visible`
@@ -205,11 +161,11 @@ el.addEventListener('transitionend', () => el.remove(), { once: true });
 
 ## `spawnNotif(type)`
 
-1. If `type === 'random'`, resolve to a real type via `pick(TYPES)`.
-2. Pick a random entry from `CONTENT[type]`; destructure `{ key, heading, desc, autoDismiss }`.
-3. **Coalesce check** — see section below.
+1. If `type === 'random'`, resolve to a real type.
+2. Pick an entry for that type; destructure `{ key, heading, desc, autoDismiss, actions }`.
+3. **Coalesce check** — see Deduplication section.
 4. Create `.notif` element; set `data-notif-key = key`, `_notifCount = 1`, `--notif-color`.
-5. Build `actionBtns` HTML: `(entry.actions || [pick(ACTION_LABELS)]).map(label => \`<button class="notif-action-btn">${label}</button>\`).join('')`. Set `innerHTML` with icon, body (heading + desc), `${actionBtns}`, and close btn.
+5. Build action buttons HTML from `entry.actions` (or a single fallback label). Set `innerHTML` with icon, body (heading + desc), action buttons, and close button.
 6. Wire close button (see Deduplication).
 7. Attach touch listeners for swipe-to-dismiss.
 8. `prepend()` into `#notif-stack`.
@@ -326,6 +282,27 @@ el.addEventListener('transitionend', () => el.remove(), { once: true });
 
 ---
 
+## `spawnNotice({ heading, desc, actions, icon, dismissible })`
+
+1. Dismiss any existing non-dismissing notice via `dismissNotice`.
+2. Create `.notice`; build `actionBtns` HTML (first gets `.notice-action-primary`).
+3. Set `innerHTML` with optional icon, body (heading + desc), optional actions, optional close button.
+4. If `dismissible`, wire close button to `dismissNotice(el)`.
+5. `appendChild` into `#notice-stack`.
+
+---
+
+## `dismissNotice(el)`
+
+Guard: `if (el.classList.contains('notice-dismissing')) return`.
+
+**Phase 1 — slide down:**
+Add `.notice-dismissing` → `@keyframes notice-out` (`to: translateY(calc(100% + 20px)), opacity: 0`; `0.2s ease-in forwards`). Also sets `pointer-events: none; overflow: hidden`.
+
+**Phase 2 — height collapse** (on `animationend`, `{ once: true }`): identical pattern to `dismissNotif` — lock height + padding + marginBottom as inline styles, force reflow, transition all to 0, remove on `transitionend`.
+
+---
+
 ## Swipe to dismiss
 
 All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, `swipeStartY`, `swipeDx = 0`, `swipeIsHoriz = null`.
@@ -363,33 +340,6 @@ All touch listeners use `{ passive: true }`. Variables per card: `swipeStartX`, 
 - **≤ 600px**: `.notif-stack` — `left: 12px; right: 12px; min-width: unset; max-width: unset`
 - **≤ 480px**: `.notif` — `flex-wrap: wrap`; `.notif-actions` — `width: 100%; margin-left: calc(24px + 24px)` (aligns under body text)
 - **≤ 480px**: `.banner` — `flex-wrap: wrap`; `.banner-actions` — `width: 100%; margin-left: calc(24px + 16px)`
-
----
-
-## Debug panel
-
-Fixed, `bottom: 20px; left: 20px`. Three modes controlled by the **Notif | Banner | Notice** pill.
-
-### Notif mode
-- **Error / Warning / Info / Success / Random** — spawns immediately via `spawnNotif(type)`
-- **Timer toggle** — clock icon (`#debug-timer-toggle`); toggles `debugAutoDismiss`. Default: off.
-
-### Banner mode
-- **Color picker** (`<input type="color">`, default `#017FA5`) — sets `--banner-color` on the spawned banner
-- **Icon picker** — custom popover grid of 23 Material Icons (4-column); clicking an icon selects it and updates the trigger preview. Opens/closes via `toggleIconPicker(e)` with `e.stopPropagation()` to prevent immediate close from the document-level outside-click listener.
-- **Spawn** — spawns a banner with the current color + icon + random content entry
-- **Random** — picks a random color from `BANNER_COLORS` (36 curated), a random icon from `BANNER_ICONS` (23), and random content; syncs the color picker and icon picker UI
-- **Long** — always spawns the `long-test` entry (guaranteed to overflow) using the current color + icon; for testing the truncation disclosure
-
-### Notice mode
-- **Spawn** — dismisses the current notice (if any) and spawns a new random one from `NOTICE_CONTENT`
-
-Timer toggle is hidden in Banner and Notice modes (`#debug-timer-wrap` set to `display:none`).
-
-Dividers (`.debug-divider`, 1px, `rgba(255,255,255,0.15)`) separate sections.
-
-### Portal preview panel
-Fixed, `bottom: 20px; right: 20px`. Dropdown swaps the `.shell` page content with a full-width `<img>` screenshot. Options: Curator (default, shows `.shell`), NF Portal, AD Knowledge Portal, ELITE Portal, Sage Homepage. Screenshots are in `public/screenshots/`. Initialized on load to sync with browser-restored select state.
 
 ---
 
