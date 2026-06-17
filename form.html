@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Challenge Registration – Synapse</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 13px;
+        color: #2d3748;
+        background: #f5f6f8;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Header ── */
+      .page-header {
+        background: #253858;
+        padding: 0 32px;
+        display: flex;
+        align-items: center;
+        height: 52px;
+        gap: 20px;
+      }
+      .page-header-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .page-header-sub {
+        font-size: 12px;
+        color: rgba(255,255,255,0.5);
+      }
+      .header-sep {
+        width: 1px;
+        height: 16px;
+        background: rgba(255,255,255,0.2);
+      }
+
+      /* ── Layout ── */
+      .page-body {
+        max-width: 640px;
+        margin: 40px auto;
+        padding: 0 24px 80px;
+      }
+
+      .page-heading {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1c2b3a;
+        margin: 0 0 6px;
+        letter-spacing: -0.3px;
+      }
+      .page-subheading {
+        font-size: 13.5px;
+        color: #6b7280;
+        margin: 0 0 32px;
+        line-height: 1.5;
+      }
+
+      /* ── Form card ── */
+      .form-card {
+        background: #fff;
+        border: 1px solid #dde1e7;
+        border-radius: 6px;
+        padding: 28px 32px;
+      }
+
+      .form-section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin: 0 0 16px;
+      }
+      .form-section-label:not(:first-child) {
+        margin-top: 28px;
+      }
+
+      .form-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+        margin-bottom: 16px;
+      }
+      .form-field:last-child {
+        margin-bottom: 0;
+      }
+      .form-row .form-field {
+        margin-bottom: 0;
+      }
+
+      label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #374151;
+      }
+      label .required {
+        color: #e5534b;
+        margin-left: 2px;
+      }
+
+      input[type="text"],
+      input[type="email"] {
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 13px;
+        color: #1c1f26;
+        background: #fff;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      input[type="text"]:focus,
+      input[type="email"]:focus {
+        border-color: #395979;
+        box-shadow: 0 0 0 3px rgba(57,89,121,0.12);
+      }
+
+      .hint {
+        font-size: 11.5px;
+        color: #9ca3af;
+        margin-top: 1px;
+      }
+
+      /* ── Radio group ── */
+      .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .radio-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .radio-option input[type="radio"] {
+        margin-top: 1px;
+        flex-shrink: 0;
+        accent-color: #395979;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+      }
+      .radio-label {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+      .radio-label-main {
+        font-size: 13px;
+        font-weight: 500;
+        color: #1c1f26;
+      }
+      .radio-label-sub {
+        font-size: 11.5px;
+        color: #9ca3af;
+      }
+
+      /* ── Divider ── */
+      .form-divider {
+        height: 1px;
+        background: #eef0f3;
+        margin: 24px 0;
+      }
+
+      /* ── Checkbox ── */
+      .checkbox-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .checkbox-option input[type="checkbox"] {
+        margin-top: 1px;
+        flex-shrink: 0;
+        accent-color: #395979;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+      }
+      .checkbox-label {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.5;
+      }
+      .checkbox-label a {
+        color: #395979;
+        text-decoration: none;
+      }
+      .checkbox-label a:hover { text-decoration: underline; }
+
+      /* ── Form error ── */
+      .form-error {
+        display: none;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 13px 16px;
+        background: #fff8f8;
+        border: 1px solid rgba(224,49,49,0.22);
+        border-radius: 5px;
+        margin-top: 24px;
+        animation: form-error-in 0.2s ease-out;
+      }
+      .form-error.visible {
+        display: flex;
+      }
+      @keyframes form-error-in {
+        from { opacity: 0; transform: translateY(-3px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .form-error-icon {
+        flex-shrink: 0;
+        color: #c92a2a;
+        margin-top: 1px;
+        display: flex;
+      }
+      .form-error-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .form-error-heading {
+        font-size: 13px;
+        font-weight: 600;
+        color: #c92a2a;
+        margin: 0 0 6px;
+      }
+      .form-error-list {
+        margin: 0;
+        padding-left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .form-error-list li {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.45;
+      }
+
+      /* ── Actions ── */
+      .form-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 24px;
+        border-top: 1px solid #eef0f3;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 20px;
+        background: #395979;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .btn-primary:hover { opacity: 0.88; }
+      .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
+      }
+      .btn-ghost:hover { border-color: #9ca3af; color: #374151; }
+    </style>
+  </head>
+  <body>
+
+    <header class="page-header">
+      <span class="page-header-title">Synapse</span>
+      <span class="header-sep"></span>
+      <span class="page-header-sub">2025 Brain Tumor Segmentation Challenge</span>
+    </header>
+
+    <div class="page-body">
+
+      <h1 class="page-heading">Register for Challenge</h1>
+      <p class="page-subheading">Complete the form below to register your team for the 2025 Brain Tumor Segmentation Challenge. Submissions open August 1.</p>
+
+      <div class="form-card">
+
+        <p class="form-section-label">Contact information</p>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="first-name">First name <span class="required">*</span></label>
+            <input type="text" id="first-name" name="first-name" autocomplete="given-name" />
+          </div>
+          <div class="form-field">
+            <label for="last-name">Last name <span class="required">*</span></label>
+            <input type="text" id="last-name" name="last-name" autocomplete="family-name" />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="email">Email address <span class="required">*</span></label>
+          <input type="email" id="email" name="email" autocomplete="email" />
+          <span class="hint">Use the email associated with your Synapse account.</span>
+        </div>
+
+        <div class="form-field">
+          <label for="institution">Institution or organization <span class="required">*</span></label>
+          <input type="text" id="institution" name="institution" autocomplete="organization" />
+        </div>
+
+        <div class="form-divider"></div>
+
+        <p class="form-section-label">Intended use <span style="color:#e5534b">*</span></p>
+
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="intended-use" value="academic" />
+            <span class="radio-label">
+              <span class="radio-label-main">Academic research</span>
+              <span class="radio-label-sub">Non-commercial research at a university or research institute</span>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="intended-use" value="commercial" />
+            <span class="radio-label">
+              <span class="radio-label-main">Commercial research</span>
+              <span class="radio-label-sub">Research conducted by or on behalf of a for-profit organization</span>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="intended-use" value="clinical" />
+            <span class="radio-label">
+              <span class="radio-label-main">Clinical application</span>
+              <span class="radio-label-sub">Development of tools intended for clinical or diagnostic use</span>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="intended-use" value="education" />
+            <span class="radio-label">
+              <span class="radio-label-main">Educational purposes</span>
+              <span class="radio-label-sub">Coursework, teaching, or student projects</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <label class="checkbox-option">
+          <input type="checkbox" name="terms" />
+          <span class="checkbox-label">
+            I have read and agree to the <a href="#">Synapse Data Use Terms</a> and the <a href="#">Challenge Rules</a>. I understand that submissions will be evaluated on held-out test data.
+          </span>
+        </label>
+
+        <div class="form-error" id="form-error">
+          <svg class="form-error-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="8" cy="8" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 4.5V8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="8" cy="11" r="0.875" fill="currentColor"/>
+          </svg>
+          <div class="form-error-body">
+            <p class="form-error-heading">Please correct the following errors</p>
+            <ul class="form-error-list" id="form-error-list"></ul>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" id="submit-btn" type="button">Submit registration</button>
+          <button class="btn-ghost" type="button">Cancel</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <script>
+      document.getElementById('submit-btn').addEventListener('click', function () {
+        const errors = [];
+
+        if (!document.getElementById('first-name').value.trim())
+          errors.push('First name is required');
+        if (!document.getElementById('last-name').value.trim())
+          errors.push('Last name is required');
+
+        const emailVal = document.getElementById('email').value.trim();
+        if (!emailVal) {
+          errors.push('Email address is required');
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          errors.push('Email address is not valid');
+        }
+
+        if (!document.getElementById('institution').value.trim())
+          errors.push('Institution or organization is required');
+        if (!document.querySelector('input[name="intended-use"]:checked'))
+          errors.push('Please select an intended use');
+        if (!document.querySelector('input[name="terms"]:checked'))
+          errors.push('You must agree to the terms to continue');
+
+        const errorEl = document.getElementById('form-error');
+        const listEl  = document.getElementById('form-error-list');
+
+        if (errors.length > 0) {
+          listEl.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+          errorEl.classList.remove('visible');
+          void errorEl.offsetWidth; // restart animation if already shown
+          errorEl.classList.add('visible');
+          errorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          errorEl.classList.remove('visible');
+        }
+      });
+    </script>
+
+  </body>
+</html>

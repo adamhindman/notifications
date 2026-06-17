@@ -808,6 +808,7 @@
     </div><!-- /.shell -->
 
     <img id="portal-frame" src="" alt="" style="display:none;">
+    <iframe id="html-frame" src="" style="display:none; width:100%; height:100vh; border:none;"></iframe>
 
     <!-- ── Portal switcher ── -->
     <div class="debug-panel debug-panel-right">
@@ -818,29 +819,37 @@
         <option value="ad">AD Knowledge Portal</option>
         <option value="elite">ELITE Portal</option>
         <option value="sage">Sage Homepage</option>
+        <!-- <option value="form">Challenge Form</option> -->
       </select>
     </div>
 
     <script>
       const PORTAL_URLS = {
-        nf:    'screenshots/nf-synapse-org.png',
-        ad:    'screenshots/ad-knowledge-portal.png',
-        elite: 'screenshots/elite-portal.png',
-        sage:  'screenshots/sagebionetworks.png',
+        nf:    { src: 'screenshots/nf-synapse-org.png',      type: 'img' },
+        ad:    { src: 'screenshots/ad-knowledge-portal.png', type: 'img' },
+        elite: { src: 'screenshots/elite-portal.png',        type: 'img' },
+        sage:  { src: 'screenshots/sagebionetworks.png',     type: 'img' },
+        form:  { src: 'form.html',                           type: 'html' },
       };
 
       function switchPortal(value) {
-        const frame = document.getElementById('portal-frame');
-        const shell = document.querySelector('.shell');
-        const url = PORTAL_URLS[value];
-        if (value === 'curator' || !url) {
-          frame.style.display = 'none';
-          frame.src = '';
+        const imgFrame  = document.getElementById('portal-frame');
+        const htmlFrame = document.getElementById('html-frame');
+        const shell     = document.querySelector('.shell');
+        const entry     = PORTAL_URLS[value];
+
+        shell.style.display     = 'none';
+        imgFrame.style.display  = 'none';  imgFrame.src  = '';
+        htmlFrame.style.display = 'none';  htmlFrame.src = '';
+
+        if (value === 'curator' || !entry) {
           shell.style.display = '';
+        } else if (entry.type === 'img') {
+          imgFrame.src = entry.src;
+          imgFrame.style.display = 'block';
         } else {
-          shell.style.display = 'none';
-          frame.src = url;
-          frame.style.display = 'block';
+          htmlFrame.src = entry.src;
+          htmlFrame.style.display = 'block';
         }
       }
 
