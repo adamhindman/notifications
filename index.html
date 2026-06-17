@@ -46,9 +46,13 @@
         <div class="debug-divider"></div>
         <button class="debug-btn debug-random" onclick="randomBanner()">Random</button>
         <button class="debug-btn debug-random" onclick="spawnLongBanner()">Long</button>
+        <div class="debug-divider"></div>
+        <button class="debug-btn debug-timer debug-timer-active" id="debug-banner-dismiss-toggle" onclick="toggleBannerDismissible()">Closable</button>
       </div>
       <div id="debug-notice-controls" style="display:none">
         <button class="debug-btn debug-random" onclick="spawnSelected()">Spawn</button>
+        <div class="debug-divider"></div>
+        <button class="debug-btn debug-timer debug-timer-active" id="debug-notice-dismiss-toggle" onclick="toggleNoticeDismissible()">Closable</button>
       </div>
       <div id="debug-timer-wrap" style="display:contents">
         <div class="debug-divider"></div>
@@ -285,7 +289,7 @@
         const color = document.getElementById('debug-banner-color').value;
         const iconHtml = `<span class="material-icons">${selectedBannerIcon}</span>`;
         const entry = BANNER_CONTENT.find(e => e.key === 'long-test');
-        spawnBanner({ color, iconHtml, title: entry.title, desc: entry.desc, action: entry.action });
+        spawnBanner({ color, iconHtml, title: entry.title, desc: entry.desc, action: entry.action, dismissible: bannerDismissible });
       }
 
       function randomBanner() {
@@ -293,8 +297,8 @@
         const iconName = pick(BANNER_ICONS);
         document.getElementById('debug-banner-color').value = color;
         selectBannerIcon(iconName);
-        const { title, desc, action, dismissible = true } = pick(BANNER_CONTENT);
-        spawnBanner({ color, iconHtml: `<span class="material-icons">${iconName}</span>`, title, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
+        const { title, desc, action } = pick(BANNER_CONTENT);
+        spawnBanner({ color, iconHtml: `<span class="material-icons">${iconName}</span>`, title, desc, action: Math.random() < 0.28 ? action : undefined, dismissible: bannerDismissible });
       }
 
       document.addEventListener('click', () => {
@@ -304,6 +308,16 @@
 
       let selectedComponent = 'notif';
       let noticeSpawnedOnce = false;
+      let bannerDismissible = true;
+      let noticeDismissible = true;
+      function toggleBannerDismissible() {
+        bannerDismissible = !bannerDismissible;
+        document.getElementById('debug-banner-dismiss-toggle').classList.toggle('debug-timer-active', bannerDismissible);
+      }
+      function toggleNoticeDismissible() {
+        noticeDismissible = !noticeDismissible;
+        document.getElementById('debug-notice-dismiss-toggle').classList.toggle('debug-timer-active', noticeDismissible);
+      }
       function setComponent(component, btn) {
         selectedComponent = component;
         document.querySelectorAll('.debug-pill .debug-btn').forEach(b => b.classList.remove('debug-pill-active'));
@@ -319,10 +333,11 @@
         } else if (selectedComponent === 'banner') {
           const color = document.getElementById('debug-banner-color').value;
           const iconHtml = `<span class="material-icons">${selectedBannerIcon}</span>`;
-          const { title, desc, action, dismissible = true } = pick(BANNER_CONTENT);
-          spawnBanner({ color, iconHtml, title, desc, action: Math.random() < 0.28 ? action : undefined, dismissible });
+          const { title, desc, action } = pick(BANNER_CONTENT);
+          spawnBanner({ color, iconHtml, title, desc, action: Math.random() < 0.28 ? action : undefined, dismissible: bannerDismissible });
         } else if (selectedComponent === 'notice') {
-          spawnNotice(noticeSpawnedOnce ? pick(NOTICE_CONTENT) : NOTICE_CONTENT.find(e => e.heading === 'Cookie preferences'));
+          const entry = noticeSpawnedOnce ? pick(NOTICE_CONTENT) : NOTICE_CONTENT.find(e => e.heading === 'Cookie preferences');
+          spawnNotice({ ...entry, dismissible: noticeDismissible });
           noticeSpawnedOnce = true;
         }
       }

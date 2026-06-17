@@ -57,7 +57,7 @@ Adjacent banners: `.banner + .banner` gets `border-top: 1px solid rgba(0,0,0,0.0
 Newest notification is always at top (`prepend()` into `#notif-stack`).
 
 ```
-#notice-stack               — position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: min(960px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: stretch; pointer-events: none
+#notice-stack               — position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); width: min(960px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: stretch; pointer-events: none
   .notice                   — display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-bottom: 10px; background: #fff; border: 1px solid rgba(0,0,0,0.09); border-radius: 8px; box-shadow: ...; pointer-events: all
     .notice-icon?           — flex-shrink: 0; color: #395979; .material-icons: font-size 20px
     .notice-body            — flex: 1; min-width: 0
@@ -92,38 +92,37 @@ Each type has a corresponding SVG icon. Icon color is the only visual type indic
 
 ### Notification entry: `{ key, heading, desc, autoDismiss, actions? }`
 
-- `key` — unique string for deduplication
+- `key` — unique string; used for deduplication (coalescing into a badge count)
 - `heading` — bold title line
 - `desc` — body text; clamped to 1 line with `… More` disclosure if it overflows
 - `autoDismiss` — boolean; when true the card self-dismisses after 5s with a countdown bar
 - `actions` — optional array of 1–2 button label strings; if absent, a single fallback label is used
 
-Error and warning notifications are never auto-dismissed. Some success and info notifications auto-dismiss.
+### Banner spawn params: `{ color, iconHtml, title?, desc, action?, dismissible }`
 
-### Notice entry: `{ heading?, desc?, actions?, icon?, dismissible? }`
+- `color` — hex string; set as `--banner-color` on the element
+- `iconHtml` — raw HTML string: `<span class="material-icons">name</span>` or an SVG with `fill="currentColor"`
+- `title` — optional bold heading above the description
+- `desc` — body text; clamped to 2 lines with `… More` disclosure if it overflows
+- `action` — optional button label string
+- `dismissible` — **caller-supplied boolean**; when `false`, no close button is rendered. Do not derive this from a content entry — the caller controls it explicitly at spawn time.
+
+Banners are always persistent (no auto-dismiss).
+
+### Notice spawn params: `{ heading?, desc?, actions?, icon?, dismissible }`
 
 - `heading` — optional bold title line (14px 700)
 - `desc` — optional body text (13.5px)
-- `actions` — optional array of 1–3 button labels; first renders as filled primary, rest as outlined
+- `actions` — optional array of 1–3 button labels; first renders as filled primary (`#395979`), rest as outlined
 - `icon` — optional Material Icons name; renders in `#395979`
-- `dismissible` — defaults to `true`; when `false`, no close button
-
-### Banner entry: `{ key, title?, desc, action?, dismissible? }`
-
-- `key` — unique string identifier
-- `title` — optional bold heading rendered above `desc` in `.banner-title`
-- `desc` — body text; clamped to 2 lines with `… More` disclosure if it overflows
-- `action` — optional button label string
-- `dismissible` — defaults to `true`; when `false`, no close button is rendered
-
-Banners have no `autoDismiss` — they are always persistent.
+- `dismissible` — **caller-supplied boolean**; when `false`, no close button is rendered. Pass `{ ...contentEntry, dismissible }` to override the content entry's own value.
 
 ---
 
 ## `spawnBanner({ color, iconHtml, title, desc, action, dismissible })`
 
 1. Create `.banner`; set `--banner-color` to `color`.
-2. Set `innerHTML`: `iconHtml` into `.banner-icon`; optionally `.banner-title` (omitted when `title` is falsy); desc into `.banner-desc`; conditionally `banner-action-btn` and `banner-close`.
+2. Set `innerHTML`: `iconHtml` into `.banner-icon`; optionally `.banner-title` (omitted when `title` is falsy); desc into `.banner-desc`; conditionally `banner-action-btn` and `banner-close` (based on `dismissible`).
 3. If `dismissible`, wire close button to `dismissBanner(el)`.
 4. `appendChild` into `#banner-stack`.
 5. Run truncation detection in `requestAnimationFrame`: if `descEl.scrollHeight > descEl.clientHeight`, add `.banner-expandable` to the card and wire a click handler on `.banner-body` to toggle `.banner-desc-expanded` on the desc element.

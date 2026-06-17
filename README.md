@@ -52,9 +52,11 @@ A fixed panel at the bottom-left lets you spawn any of the three components.
 - **Spawn** — spawns a banner with the current color and icon
 - **Random** — picks a random color from 36 curated options, a random icon, and random announcement text
 - **Long** — spawns a guaranteed-overflow banner for testing the `… More` disclosure
+- **Closable toggle** — when lit, spawned banners include a close button; when dim, they don't
 
 **Notice mode:**
 - **Spawn** — dismisses the current notice and spawns a random one
+- **Closable toggle** — when lit, the spawned notice includes a close button; when dim, it doesn't
 
 A **Preview panel** at the bottom-right swaps the page content with a screenshot of a selected Sage portal, for testing components in context across different products.
 
