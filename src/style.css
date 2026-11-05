@@ -84,19 +84,6 @@
   overflow: visible;
 }
 
-.banner-expandable .banner-desc:not(.banner-desc-expanded)::after {
-  content: '… More';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding-left: 24px;
-  background: linear-gradient(to right, transparent, color-mix(in srgb, var(--banner-color) 8%, #fff) 40%);
-  color: #8b92a5;
-  font-weight: normal;
-  font-style: italic;
-  pointer-events: none;
-}
-
 .banner-actions {
   display: flex;
   align-items: center;

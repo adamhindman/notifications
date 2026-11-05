@@ -103,7 +103,7 @@ Each type has a corresponding SVG icon. Icon color is the only visual type indic
 - `color` — hex string; set as `--banner-color` on the element
 - `iconHtml` — raw HTML string: `<span class="material-icons">name</span>` or an SVG with `fill="currentColor"`
 - `title` — optional bold heading above the description
-- `desc` — body text; clamped to 2 lines with `… More` disclosure if it overflows
+- `desc` — body text; clamped to 2 lines, expands on click if it overflows (no `… More` affordance)
 - `action` — optional button label string
 - `dismissible` — **caller-supplied boolean**; when `false`, no close button is rendered. Do not derive this from a content entry — the caller controls it explicitly at spawn time.
 
@@ -129,8 +129,7 @@ Banners are always persistent (no auto-dismiss).
 
 Truncation CSS:
 - `.banner-desc` — `max-height: calc(1.45em * 2)` (same `max-height` rationale as `.notif-desc`)
-- `.banner-expandable .banner-body` — `cursor: pointer`
-- `.banner-expandable .banner-desc:not(.banner-desc-expanded)::after` — renders `… More`; gradient uses `color-mix(in srgb, var(--banner-color) 8%, #fff)` to match the right-edge banner background
+- `.banner-expandable .banner-body` — `cursor: pointer` (the only affordance — no `… More` label; clicking anywhere in the body toggles expansion)
 - `.banner-desc-expanded` — `max-height: none; overflow: visible`
 
 `iconHtml` is a raw HTML string — either a `<span class="material-icons">name</span>` or an SVG with `fill="currentColor"`. The `.banner-icon` CSS filter handles darkening.
